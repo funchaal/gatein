@@ -12,23 +12,16 @@ import { mockValidateToken, mockLogin } from '../../services/mockData';
  */
 export const loginRequest = createAsyncThunk(
   'auth/loginRequest',
-  async ({ cpf, password }, { rejectWithValue }) => {
+  async ({ tax_id, password }, { rejectWithValue }) => {
     try {
-      // Simula delay de rede (opcional, bom para testar loading)
-      // await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Chamada API (Mockada)
-      console.log('Chamando mockLogin com:', cpf, password);
-      const response = await mockLogin(cpf, password);
-      console.log('Resposta do mockLogin:', response);
-      
-      // O Redux Toolkit pega esse retorno e joga no action.payload do 'fulfilled'
-      return response.data; 
+      const response = await mockLogin(tax_id, password);
+      return response; 
     } catch (error) {
-      console.log('Erro no loginRequest:', error);
-      // Pega a mensagem de erro da API ou usa uma genérica
-      const errorMessage = error.response?.data?.message || 'Falha ao realizar login.';
-      return rejectWithValue(errorMessage);
+      const errorPayload = {
+        data: error.response?.data,
+        status: error.response?.status,
+      };
+      return rejectWithValue(errorPayload);
     }
   }
 );
@@ -77,11 +70,14 @@ const initialState = {
   isLoading: false, // Controla spinners de login
   isAppLoading: true, // Controla a Splash Screen inicial
   error: null,      // Armazena msg de erro para exibir na UI se precisar
+  isDeviceValidated: false,
   user: {
     id: null,
     name: null,
     tax_id: null,
     role: null,
+    isRegistered: false,
+    registerStep: null
     // avatar: null, // Se tiver no futuro
   },
 };
@@ -98,6 +94,9 @@ const authSlice = createSlice({
       state.isOffline = false;
       state.error = null;
     },
+    setAuthenticaded: (state, action) => {
+      state.isAuthenticated = action.payload;
+    },
     // Limpar erros (útil quando o usuário tenta logar de novo)
     clearError: (state) => {
       state.error = null;
@@ -107,20 +106,19 @@ const authSlice = createSlice({
     builder
       // --- LOGIN REQUEST ---
       .addCase(loginRequest.pending, (state) => {
-        // state.isLoading = true;
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(loginRequest.fulfilled, (state, action) => {
-        console.log('Login bem-sucedido: stoy aqui');
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.token = action.payload.data.token; // ou mock
+        state.user = action.payload.data.user;
         state.isOffline = false;
       })
       .addCase(loginRequest.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload; // "Senha incorreta", etc.
+        state.error = action.payload; // Contém { data, status }
       })
 
       // --- CHECK AUTH STATUS (Splash Screen) ---
@@ -146,5 +144,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, setAuthenticaded } = authSlice.actions;
 export default authSlice.reducer;

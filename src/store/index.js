@@ -9,6 +9,7 @@ import chatReducer from './slices/chatSlice';
 import appointmentsReducer from './slices/appointmentsSlice';
 import terminalsReducer from './slices/terminalsSlice';
 import documentReducer from './slices/documentSlice';
+import registerReducer from './slices/registerSlice';
 
 // 1. Combina todos os pedaços do estado (Slices)
 const rootReducer = combineReducers({
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   appointments: appointmentsReducer,
   terminals: terminalsReducer,
   document: documentReducer, 
+  register: registerReducer,
 });
 
 // 2. Configuração do Redux Persist (O que vai ser salvo no celular)

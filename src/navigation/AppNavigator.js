@@ -1,4 +1,5 @@
 import React from "react";
+import { Pressable, Text } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useSelector } from "react-redux"; // Importamos o hook para ler o estado
 
@@ -16,14 +17,21 @@ import WelcomeScreen from "../screens/WelcomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import TermsScreen from "../screens/TermsScreen";
 import TaxIdScreen from "../screens/register/TaxIdScreen";
+import NameScreen from "../screens/register/NameScreen";
 import LicenseScreen from "../screens/register/LicenseScreen";
 import DocumentCamera from "../screens/register/DocumentCamera";
 import PhoneScreen from "../screens/register/PhoneScreen";
-import ConfirmScreen from "../screens/register/ConfirmScreen";
+import PhoneCodeScreen from "../screens/register/PhoneCodeScreen";
+import DriverLicenseNumberScreen from "../screens/register/DriverLicenseNumberScreen";
+import DriverLicensePendingValidationScreen from "../screens/register/DriverLicenseNumberPendingValidationScreen";
+import DriverLicenseInvalidScreen from "../screens/register/DriverLicenseInvalidScreen";
 import PasswordScreen from "../screens/register/PasswordScreen";
 import SuccessScreen from "../screens/register/SuccessScreen";
+import InProgressConfirmationScreen from "../screens/register/InProgressConfirmationScreen";
+import UserNotFoundScreen from "../screens/register/UserNotFoundScreen";
 
 import { COLORS } from "../constants/colors";
+
 
 const Stack = createStackNavigator();
 
@@ -75,9 +83,20 @@ export default function AppNavigator() {
                 <Stack.Group>
                     <Stack.Screen name='Login' component={LoginScreen} options={{ headerShown: false }} />
                     <Stack.Screen name='Welcome' component={WelcomeScreen} options={{ headerShown: false }} />
+                    <Stack.Screen name='UserNotFound' component={UserNotFoundScreen} options={{ headerShown: false }} />
                     
                     {/* Telas de Registro */}
-                    <Stack.Screen name='TaxId' component={TaxIdScreen} options={{ title: 'Criar Conta', ...screenOptions }} />
+                    <Stack.Screen name='InProgressConfirmation' component={InProgressConfirmationScreen} options={{ headerShown: false }} />
+                    <Stack.Screen 
+    name='TaxId' 
+    component={TaxIdScreen} 
+    options={({ navigation }) => ({
+        title: '', 
+        ...screenOptions, 
+    })} 
+/>
+                    <Stack.Screen name='Name' component={NameScreen} options={{ title: '', ...screenOptions }} />
+                    <Stack.Screen name='Phone' component={PhoneScreen} options={{ title: '', ...screenOptions }} />
                     <Stack.Screen 
           name="License" 
           component={LicenseScreen}
@@ -93,9 +112,11 @@ export default function AppNavigator() {
           }}
         />
                     <Stack.Screen name='AuthFacialRecognition' component={FacialRecognitionScreen} options={{ title: 'Reconhecimento Facial', ...screenOptions }} />
-                    <Stack.Screen name='Phone' component={PhoneScreen} options={{ title: 'Criar Conta', ...screenOptions }} />
-                    <Stack.Screen name='Confirm' component={ConfirmScreen} options={{ title: 'Validar Celular', ...screenOptions }} />
-                    <Stack.Screen name='Password' component={PasswordScreen} options={{ title: 'Definir Senha', ...screenOptions }} />
+                    <Stack.Screen name='PhoneCode' component={PhoneCodeScreen} options={{ title: '', ...screenOptions, headerLeft: () => null, gestureEnabled: false }} />
+                    <Stack.Screen name='DriverLicenseNumber' component={DriverLicenseNumberScreen} options={{ title: '', ...screenOptions, headerLeft: () => null, gestureEnabled: false }} />
+                    <Stack.Screen name='DriverLicenseInvalid' component={DriverLicenseInvalidScreen} options={{ headerShown: false }} />
+                    <Stack.Screen name='DriverLicensePendingValidation' component={DriverLicensePendingValidationScreen} options={{ headerShown: false }} />
+                    <Stack.Screen name='Password' component={PasswordScreen} options={{ title: '', ...screenOptions, headerLeft: () => null, gestureEnabled: false }} />
                     <Stack.Screen name='Success' component={SuccessScreen} options={{ headerShown: false }} />
                 </Stack.Group>
             )}

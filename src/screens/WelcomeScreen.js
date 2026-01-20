@@ -1,50 +1,51 @@
 import React from "react";
-import { StyleSheet, View, Text, Pressable, Image } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import Input from "../components/common/Input"; // Caminho atualizado
-import { COLORS } from "../constants/colors"; // Cores centralizadas
-import { useDispatch } from "react-redux";
-import { checkAuthStatus, setUser } from "../store/slices/authSlice";
 
+// MUDANÇA AQUI: Importação direta do pacote padrão do CLI
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import { COLORS } from "../constants/colors"; 
 
 export default function WelcomeScreen() {
     const navigation = useNavigation();
-    const dispatch = useDispatch();
 
     function handleLogin() {
-        // A lógica de validação de CPF e senha entraria aqui
-//         dispatch(setUser({
-//     id: 1234,
-//     name: 'Rafael Silva',
-//     tax_id: 43316667865, // CPF/CNPJ
-//     role: 'driver',
-//   }))
         navigation.navigate('Login');
     }
     
     function handleRegister() {
-        // Navega para a primeira tela do fluxo de cadastro
-        navigation.navigate('TaxId'); // Supondo que 'TaxId' é o nome da rota de cadastro
+        navigation.navigate('TaxId');
     }
 
     return (
         <View style={styles.container}>
-            <Image 
-                source={require('../../assets/images/gate.png')} // Assumindo que a logo está em assets/images
-                style={styles.logo}
+            {/* 1. Ícone de Fundo (Marca d'água "Boom Gate") */}
+            <MaterialCommunityIcons 
+                name="boom-gate" 
+                size={300} 
+                color={COLORS.primary} 
+                style={styles.backgroundIcon} 
             />
-            
-            <View style={styles.formContainer}>
-                {/* <Input Title='Insira seu número de CPF' Label='CPF' />
-                <Input Title='Insira sua senha' Label='Senha' isPassword={true} /> */}
-                
-                <Pressable onPress={handleLogin} style={styles.primaryButton}>
-                    <Text style={styles.primaryButtonText}>Acessar</Text>
+
+            {/* 2. Conteúdo Principal */}
+            <View style={styles.contentContainer}>
+                <Text style={styles.title}>
+                    <Text style={styles.boldText}>Domine</Text>{'\n'}
+                    sua viagem{'\n'}
+                    <Text style={styles.boldText}>com informação</Text>{'\n'}
+                    rápida
+                </Text>
+
+                {/* Botão de Registro com Ícone > */}
+                <Pressable style={styles.registerButton} onPress={handleRegister}>
+                    <Text style={styles.registerButtonText}>Criar conta</Text>
+                    <MaterialCommunityIcons name="chevron-right" size={24} color="white" />
                 </Pressable>
                 
-                <Pressable style={styles.secondaryButton} onPress={handleRegister}>
-                    <Text style={styles.secondaryButtonText}>Criar conta</Text>
+                {/* Botão de Login */}
+                <Pressable onPress={handleLogin} style={styles.loginButton}>
+                    <Text style={styles.loginButtonText}>Acessar sua conta</Text>
                 </Pressable>
             </View>
         </View>
@@ -54,57 +55,65 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        backgroundColor: COLORS.background,
+        position: 'relative', 
+        overflow: 'hidden',   
     },
-    logo: {
-        width: '100%',
-        display: 'absolute',
-        marginTop: '20%',
-        opacity: 0.0,
+    backgroundIcon: {
+        position: 'absolute',
+        bottom: 100,    
+        right: -70,     
+        opacity: 0.1,   
+        transform: [{ rotate: '-20deg' }, { scale: 2 }], 
+        zIndex: 0,      
     },
-    formContainer: {
-        width: '100%',
-        alignItems: 'center',
-        padding: 20,
-        paddingBottom: 40,
+    contentContainer: {
+        flex: 1,
+        zIndex: 1,      
+        paddingTop: '35%', 
+        paddingHorizontal: 20,
+        alignItems: 'flex-start', 
     },
-    primaryButton: {
-        width: '100%',
-        height: 50,
-        borderWidth: 1, 
-        borderColor: '#F97316',
-        marginTop: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 12,
+    title: {
+        fontSize: 43, 
+        color: COLORS.textSecondary, // Certifique-se que essa cor existe no seu arquivo colors
+        marginBottom: 30, 
+        lineHeight: 50,   
     },
-    primaryButtonText: {
-        color: '#F97316',
-        fontSize: 16,
+    boldText: {
         fontWeight: 'bold',
+        // color: COLORS.primary, 
     },
-    secondaryButton: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#F97316',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 12,
+    registerButton: {
         marginTop: 10,
-    },
-    secondaryButtonText: {
-        color: 'white',
-        fontSize: 16,
+        height: 54, 
+        backgroundColor: COLORS.primary, 
+        borderRadius: 30, 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 25, 
+        minWidth: 150, 
+        gap: 10, 
+    }, 
+    registerButtonText: {
+        color: 'white', 
+        fontSize: 16, 
         fontWeight: 'bold',
+    }, 
+    loginButton: {
+        marginTop: 12,
+        height: 50, 
+        paddingHorizontal: 30,
+        borderRadius: 30, 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        borderWidth: 1, 
+        borderColor: COLORS.primary, 
     },
-    footerText: {
-        fontSize: 15,
-    },
-    footerLink: {
-        color: COLORS.primary,
-        fontWeight: 'bold',
+    loginButtonText: {
+        color: COLORS.primary, 
+        fontSize: 16, 
+        fontWeight: 'bold'
     }
 });
-

@@ -1,30 +1,63 @@
-import React, { useState } from "react";
-import { View, TextInput, Text, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, TextInput, Text, StyleSheet, Animated } from "react-native";
+import { COLORS } from "../../constants/colors";
+import { globalStyles } from "../../constants/styles";
 
-// Defina sua cor primária aqui ou importe de constants
-const PRIMARY_COLOR = '#F97316'; // Laranja
+// Criamos um componente de Input animado para aceitar cores interpoladas
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export default function Input({ label, error, ...props }) {
     const [isFocused, setIsFocused] = useState(false);
+    
+    // Controlador da animação (0 = sem erro, 1 = com erro)
+    const errorAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.timing(errorAnim, {
+            toValue: error ? 1 : 0,
+            duration: 200, // Transição "bem rápida" e suave
+            useNativeDriver: false, // Necessário false para animar cores e layout
+        }).start();
+    }, [error]);
+
+    // 1. Interpolação da Cor de Fundo do Input
+    const backgroundColor = errorAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [COLORS.lightGray, '#ffe9e9ff']
+    });
+
+    // 2. Estilos do Texto de Erro (Opacidade e Altura para não ocupar espaço quando vazio)
+    const errorOpacity = errorAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1]
+    });
 
     return (
         <View style={[styles.container, props.containerStyle]}>
             {label && <Text style={styles.label}>{label}</Text>}
             
-            <TextInput
-                placeholderTextColor="#999"
+            <AnimatedTextInput
+                placeholderTextColor={COLORS.muted}
                 style={[
-                    styles.input,
-                    isFocused && styles.inputFocused, // Borda laranja ao focar
-                    error && styles.inputError,       // Borda vermelha se houver erro
+                    globalStyles.input,
+                    { 
+                        backgroundColor: backgroundColor
+                    },
                     props.style
                 ]}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                {...props} // Repassa todas as outras props (secureTextEntry, value, etc)
+                {...props}
             />
             
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            {/* O texto de erro sempre é renderizado na árvore, mas controlamos 
+               sua visibilidade e altura pela animação para ser suave 
+            */}
+            <Animated.View style={{ opacity: errorOpacity, overflow: 'hidden' }}>
+                <Text style={styles.errorText}>
+                    {error || ''} 
+                </Text>
+            </Animated.View>
         </View>
     );
 }
@@ -32,36 +65,27 @@ export default function Input({ label, error, ...props }) {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        marginVertical: 10,
+        // marginVertical: 20,
     },
     label: {
-        marginBottom: 6,
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginLeft: 4, // Alinhamento visual suave
+        marginBottom: 7,
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#a5a5a5ff',
+        marginLeft: 4,
     },
     input: {
-        height: 56, // Altura um pouco maior para toque fácil
+        height: 56,
         width: '100%',
-        backgroundColor: '#F5F5F5', // Cinza bem suave
-        borderRadius: 12, // Pedido do usuário
+        borderRadius: 12,
         paddingHorizontal: 16,
         fontSize: 16,
-        color: '#333',
-        borderWidth: 1.5,
-        borderColor: 'transparent', // Borda invisível por padrão
-    },
-    inputFocused: {
-        borderColor: PRIMARY_COLOR, // Fica laranja ao clicar
-        backgroundColor: '#FFF',    // Fundo branco para destaque
-    },
-    inputError: {
-        borderColor: '#DC2626', // Vermelho erro
+        color: COLORS.textPrimary,
+        // Background e BorderColor agora são controlados via style inline no componente
     },
     errorText: {
-        color: '#DC2626',
-        fontSize: 12,
+        color: COLORS.error,
+        fontSize: 16,
         marginTop: 4,
         marginLeft: 4,
     }

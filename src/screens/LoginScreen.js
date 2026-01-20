@@ -1,51 +1,80 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    View, 
-    Text, 
-    TouchableOpacity, 
-    StyleSheet, 
-    SafeAreaView, 
-    KeyboardAvoidingView, 
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    // SafeAreaView, // <--- REMOVIDO DAQUI
+    KeyboardAvoidingView,
     Platform,
     LayoutAnimation,
-    UIManager
+    UIManager,
+    Keyboard,
+    Pressable,
+    TouchableOpacity
 } from 'react-native';
+
+// --- ADICIONADO AQUI ---
+import { SafeAreaView } from 'react-native-safe-area-context'; 
+
 import { useSelector, useDispatch } from 'react-redux';
-import Input from '../components/common/Input'; // Importe o componente criado acima
 
+// Components
+import Input from '../components/common/Input';
+import MainAsyncButton from '../components/common/MainAsyncButton';
+
+// Store & Utils
 import { loginRequest } from '../store/slices/authSlice';
-import { useFocusEffect } from '@react-navigation/native';
+import { isValidCPF } from '../utils/validators';
+import { maskCPF } from '../utils/masks';
+import { COLORS } from '../constants/colors';
+import SecondaryButton from '../components/common/SecondaryButton';
 
-// Habilita animações no Android
-// if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-//     UIManager.setLayoutAnimationEnabledExperimental(true);
-// }
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
-const COLORS = {
-    primary: '#F97316', // Seu Laranja
-    background: '#FFFFFF',
-    text: '#1F2937',
-    muted: '#6B7280'
-};
-
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
     const dispatch = useDispatch();
-    
-    // Redux
     const { user, token } = useSelector((state) => state.auth);
 
-    // Estados
-    const [step, setStep] = useState('cpf'); // 'cpf' ou 'password'
-    const [cpf, setCpf] = useState('');
+    const [step, setStep] = useState(route?.params?.tax_id ? 'password' : 'cpf');
+    const [cpf, setCpf] = useState(route?.params?.tax_id || '');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    
+    const [cpfError, setCpfError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [validCpf, setValidCpf] = useState(false);
     
     useEffect(() => {
-        setError('');
+        if (step === 'cpf') setPasswordError('');
+        else setCpfError('');
     }, [step]);
+    
+    useEffect(() => {
+        setCpfError('');
+        if (cpf.length < 2) {
+            setValidCpf(false);
+            return;
+        }
 
-    // Verifica se já existe usuário salvo ao abrir a tela
+        const is_valid = isValidCPF(cpf);
+        setValidCpf(is_valid);
+
+        const timeoutId = setTimeout(() => {
+            if (!is_valid && cpf.length > 1) { 
+                setCpfError('CPF inválido.');
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    }, [cpf]);
+
+    useEffect(() => {
+        setPasswordError('');
+    }, [password]);
+
+
     useEffect(() => {
         if (token && user?.tax_id) {
             setCpf(user.tax_id);
@@ -53,144 +82,165 @@ export default function LoginScreen({ navigation }) {
         }
     }, [token, user]);
 
-    // Ação do Botão Principal
-    const handleMainButton = async () => {
-        if (step === 'cpf') {
-            // Validação simples antes de avançar
-            if (cpf.length < 11) {
-                alert("Digite um CPF válido"); 
-                return;
-            }
-            // Animação suave para troca de input
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setStep('password');
-        } else {
-            // Ação de Login Real
-            console.log("Logando...", { cpf, password });
-            try {
-                setLoading(true)
-                const user = await dispatch(loginRequest({ cpf, password })).unwrap();
-                console.log("Login bem-sucedido:", user);
-            } catch (error) {
-                console.log("Erro no login:", error);
-                setError(error);
-            }
-            finally {
-                setLoading(false);
-            }
-            // dispatch(loginRequest({ cpf, password }));
-        }
-    };
-
-    // Voltar para trocar a conta
     const handleSwitchAccount = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        // Se estiver logado, aqui você daria dispatch(logout())
         setStep('cpf');
         setCpf('');
         setPassword('');
+        setPasswordError('');
     };
 
+    const handleContinue = async () => {
+        if (step === 'cpf') {
+            if (validCpf) {
+                Keyboard.dismiss();
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setStep('password');
+            }
+        } else {
+            setLoading(true);
+            setPasswordError('');
+            try {
+                const cleanTaxId = cpf.replace(/\D/g, '');
+                const login_payload = { tax_id: cleanTaxId, password };
+                
+                // O dispatch agora lida com o sucesso internamente.
+                // Se der certo, o estado 'isAuthenticated' vai mudar e o AppNavigator
+                // vai automaticamente levar para a tela principal.
+                await dispatch(loginRequest(login_payload)).unwrap();
+
+            } catch (error) {
+                // O 'error' agora é o objeto que definimos no rejectWithValue
+                const { data, status } = error;
+                const cleanTaxId = cpf.replace(/\D/g, '');
+                const login_payload = { tax_id: cleanTaxId, password };
+
+                if (status === 404 && data.error.code === 'USER_NOT_FOUND') {
+                    navigation.replace('UserNotFound', { tax_id: cleanTaxId });
+                } 
+                else if (status === 403 && data.error.code === 'DEVICE_NOT_VALIDATED') {
+                    navigation.replace('DriverLicenseNumber', { from_login: true, login_payload });
+                }
+                else if (status === 401 && data.error.code === 'PASSWORD_INVALID') {
+                    setPasswordError(data.error.message);
+                }
+                else {
+                    // Erro genérico
+                    setPasswordError('Ocorreu um erro inesperado. Tente novamente.');
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const renderUserBadge = () => (
+        <View style={styles.cpfBadgeContainer}>
+            <View style={styles.cpfBadge}>
+                {/* <View style={styles.avatarCircle}>
+                    <Text style={styles.avatarText}>
+                        {user?.name ? user.name[0] : 'U'}
+                    </Text>
+                </View> */}
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.badgeLabel}>Acessando como</Text>
+                    <Text style={styles.badgeValue}>
+                        {maskCPF(cpf)}
+                    </Text>
+                </View>
+                <TouchableOpacity onPress={handleSwitchAccount} style={styles.changeUserIcon}>
+                    <Text style={styles.changeUserText}>ALTERAR</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
+    const renderCpfStep = () => (
+        <View style={styles.formArea}>
+            <View style={styles.mainSection}>
+                <View style={styles.logoContainer}>
+                    <Text style={styles.title}>GateIn</Text>
+                </View>
+                
+                <View style={styles.inputContainer}>
+                    <Text style={styles.subtitle}>Acesse sua conta</Text>
+                    <Input 
+                        label="Insira seu CPF"
+                        placeholder="000.000.000-00"
+                        value={cpf}
+                        onChangeText={(text) => setCpf(maskCPF(text))}
+                        keyboardType="numeric"
+                        autoFocus
+                        error={cpfError}
+                        maxLength={14}
+                    />
+                </View>
+            </View>
+
+            <View style={styles.footerLinks}>
+                <SecondaryButton
+                    title="Criar uma conta agora"
+                    onPress={() => navigation.navigate('TaxId')}
+                    style={{ marginBottom: 12 }}
+                />
+                <MainAsyncButton 
+                    title="Continuar"
+                    onPress={handleContinue}
+                    disabled={!validCpf}
+                    loading={loading}
+                />
+            </View>
+        </View>
+    );
+
+    const renderPasswordStep = () => (
+        <View style={styles.formArea}>
+            <View style={[styles.mainSection, { height: '65%' }]}>
+                <View style={styles.logoContainer}>
+                    <Text style={styles.title}>GateIn</Text>
+                </View>
+
+                <View style={styles.inputContainer}>
+                    {renderUserBadge()}
+
+                    {route?.params?.message && (
+                        <Text style={styles.infoMessage}>{route.params.message}</Text>
+                    )}
+
+                    <Input 
+                        label="Insira sua senha"
+                        placeholder="***********"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        autoFocus
+                        error={passwordError}
+                    />
+                    <MainAsyncButton 
+                        title="Entrar"
+                        onPress={handleContinue}
+                        disabled={!password}
+                        loading={loading}
+                        style={{ marginTop: 20 }}
+                    />
+                </View>
+            </View> 
+
+            <SecondaryButton
+               title="Esqueci minha senha"
+               style={{ marginBottom: 12 }}
+            />
+        </View>
+    );
+
     return (
+        // O uso aqui permanece o mesmo, mas agora vem da biblioteca correta
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"} 
                 style={styles.content}
             >
-                {/* Cabeçalho */}
-                <View style={styles.header}>
-                    <Text style={styles.welcomeText}>
-                        {step === 'cpf' ? 'Bem-vindo de volta!' : 'Quase lá...'}
-                    </Text>
-                    <Text style={styles.subText}>
-                        {step === 'cpf' 
-                            ? 'Informe seu CPF para acessar sua conta.' 
-                            : 'Digite sua senha para entrar.'}
-                    </Text>
-                </View>
-
-                {/* Área dos Inputs */}
-                <View style={styles.formArea}>
-                    
-                    {/* SE ESTIVER NO PASSO SENHA: Mostra o CPF como uma "Caixinha" fixa */}
-                    {step === 'password' && (
-                        <View style={styles.cpfBadgeContainer}>
-                            <View style={styles.cpfBadge}>
-                                <View style={styles.avatarCircle}>
-                                    <Text style={styles.avatarText}>
-                                        {user?.name ? user.name[0] : 'U'}
-                                    </Text>
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.badgeLabel}>Acessando como</Text>
-                                    <Text style={styles.badgeValue}>
-                                        {user?.name || cpf}
-                                    </Text>
-                                </View>
-                                {/* Botãozinho X pequeno para trocar rápido se quiser */}
-                                <TouchableOpacity onPress={handleSwitchAccount} style={styles.changeUserIcon}>
-                                    <Text style={{ color: COLORS.primary, fontSize: 12, fontWeight: 'bold' }}>ALTERAR</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    )}
-
-                    {/* INPUT DE CPF (Só aparece se o passo for CPF) */}
-                    {step === 'cpf' && (
-                        <Input 
-                            label="CPF"
-                            placeholder="000.000.000-00"
-                            value={cpf}
-                            onChangeText={setCpf}
-                            keyboardType="numeric"
-                            autoFocus
-                        />
-                    )}
-
-                    {/* INPUT DE SENHA (Só aparece se o passo for Password) */}
-                    {step === 'password' && (
-                        <>
-                        <Input 
-                            label="Senha"
-                            placeholder="Sua senha secreta"
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry
-                            autoFocus
-                        />
-                        <Text style={styles.errorText}>{error}</Text>
-                        </>
-                    )}
-
-                    <TouchableOpacity 
-                        style={styles.primaryButton} 
-                        onPress={handleMainButton}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.buttonText}>
-                            {step === 'cpf' ? 'Continuar' : loading ? 'Carregando...' : 'Entrar'}
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* Links de Apoio */}
-                    <View style={styles.footerLinks}>
-                        {step === 'password' ? (
-                            <TouchableOpacity onPress={() => console.log('Recuperar')}>
-                                <Text style={styles.linkText}>Esqueci minha senha</Text>
-                            </TouchableOpacity>
-                        ) : null}
-
-                        <TouchableOpacity 
-                            onPress={step === 'password' ? handleSwitchAccount : () => navigation.navigate('Welcome')}
-                            style={{ marginTop: 15 }}
-                        >
-                            <Text style={[styles.linkText, { fontWeight: 'bold' }]}>
-                                {step === 'password' ? 'Entrar com outra conta' : 'Ainda não tem conta? Crie agora'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
+                {step === 'cpf' ? renderCpfStep() : renderPasswordStep()}
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -199,50 +249,62 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: COLORS.background || '#F5F5F5',
+        padding: 24, 
+        paddingBottom: 0
     },
     content: {
         flex: 1,
-        padding: 24,
-        justifyContent: 'center',
-    },
-    header: {
-        marginBottom: 32,
-    },
-    welcomeText: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: COLORS.primary,
-        marginBottom: 8,
-    },
-    subText: {
-        fontSize: 16,
-        color: COLORS.muted,
     },
     formArea: {
+        flex: 1, 
+        justifyContent: 'space-between',
         width: '100%',
     },
-    // Estilos da "Caixinha" do CPF
+    mainSection: {
+        height: '50%', 
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+    logoContainer: {
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        width: '100%',
+    },
+    title: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+    },
+    subtitle: {
+        fontSize: 20, 
+        fontWeight: 'bold', 
+        color: COLORS.textSecondary, 
+        marginBottom: 20 
+    },
+    inputContainer: {
+        width: '100%',
+    },
     cpfBadgeContainer: {
-        marginBottom: 10,
+        marginBottom: 30,
     },
     cpfBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF4E5', // Laranja bem clarinho
-        borderRadius: 12,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#FED7AA', // Laranja borda suave
+        backgroundColor: COLORS.card || '#f7f7f7ff', 
+        borderRadius: 15,
+        padding: 16,
     },
     avatarCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 45,
+        height: 45,
+        borderRadius: 30,
         backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
+        marginRight: 15,
     },
     avatarText: {
         color: '#FFF',
@@ -250,50 +312,31 @@ const styles = StyleSheet.create({
         fontSize: 18,
     },
     badgeLabel: {
-        fontSize: 12,
-        color: COLORS.muted,
+        fontSize: 16,
+        color: COLORS.muted || '#888',
     },
     badgeValue: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: COLORS.text,
     },
     changeUserIcon: {
         paddingHorizontal: 10,
         paddingVertical: 5,
     },
-    // Botão Principal
-    primaryButton: {
-        backgroundColor: COLORS.primary,
-        height: 56,
-        borderRadius: 12, // Igual ao input
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-        shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    buttonText: {
-        color: '#FFF',
-        fontSize: 18,
-        fontWeight: 'bold',
+    changeUserText: {
+        color: COLORS.primary, 
+        fontSize: 14, 
+        fontWeight: 'bold', 
     },
     footerLinks: {
-        marginTop: 24,
-        alignItems: 'center',
+        paddingBottom: 20,
     },
-    linkText: {
-        color: COLORS.muted,
-        fontSize: 14,
-    }, 
-    errorText: {
-        color: '#DC2626',
-        fontSize: 12,
-        marginTop: 4,
-        marginLeft: 4,
-    }
-
+    infoMessage: {
+        color: COLORS.text,
+        textAlign: 'center',
+        marginBottom: 20,
+        fontSize: 16,
+        fontWeight: 'bold'
+    },
 });

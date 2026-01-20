@@ -169,33 +169,70 @@ export const chatsAPICall = async (userId) => {
 // Esse arquivo simula as respostas que o seu servidor Python/Node daria.
 // Útil para testar loading states, erros e fluxo sem internet.
 
-export const mockLogin = (cpf, password) => {
+export const mockLogin = (tax_id, password) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Simula uma validação simples (CPF: 123... Senha: 123...)
-      if (cpf === '12345678900' && password === '123456') {
+      // Caso 1: Sucesso
+      if (tax_id === '43316667865' && password === '123456') {
         resolve({
+          status: 200,
           data: {
-            token: 'fake-jwt-token-abc-123',
+            success: true,
             user: {
               id: 1,
               name: 'Rafael Motorista',
-              tax_id: '123.456.789-00',
+              tax_id: '199.264.438-18',
               role: 'driver',
               cnh: '1234567890',
             },
           },
         });
-      } else {
-        // Simula erro de senha incorreta (401 Unauthorized)
+      // Caso 2: Usuário não encontrado
+      } else if (tax_id === '03596167477') {
+        reject({
+          response: {
+            status: 404,
+            data: {
+              success: false,
+              error: { code: 'USER_NOT_FOUND', message: null },
+            },
+          },
+        });
+      // Caso 3: Senha inválida
+      } else if (tax_id === '43316667865') {
         reject({
           response: {
             status: 401,
-            data: { message: 'CPF ou senha inválidos' },
+            data: {
+              success: false,
+              error: { code: 'PASSWORD_INVALID', message: 'Senha incorreta' },
+            },
+          },
+        });
+      // Caso 4: Dispositivo não validado
+      } else if (tax_id === '19926443818') {
+        reject({
+          response: {
+            status: 403,
+            data: {
+              success: false,
+              error: { code: 'DEVICE_NOT_VALIDATED', message: null },
+            },
+          },
+        });
+      } else {
+        // Default: Senha inválida para qualquer outro caso
+        reject({
+          response: {
+            status: 401,
+            data: {
+              success: false,
+              error: { code: 'PASSWORD_INVALID', message: 'Senha incorreta' },
+            },
           },
         });
       }
-    }, 2000); // Demora 2 segundos para dar emoção (testar o spinner)
+    }, 1500); // Delay para simular a rede
   });
 };
 
@@ -227,71 +264,91 @@ export const mockValidateToken = () => {
 };
 
 
-export const uploadDocument = async (document) => {
-  return new Promise((resolve, reject) => {
-    // Simular delay de rede
-    setTimeout(() => {
-      // Simular sucesso 90% das vezes
-      if (Math.random() > 0.1) {
-        const mockResponse = {
-          success: true,
-          message: 'Documento enviado com sucesso',
-          data: {
-            documentId: `doc_${Date.now()}`,
-            fileName: document.fileName,
-            fileType: document.type,
-            uploadedAt: new Date().toISOString(),
-            status: 'pending_validation',
-            url: document.uri, // Em produção seria URL do servidor
-          }
-        };
-        resolve(mockResponse);
-      } else {
-        // Simular erro ocasional
-        reject(new Error('Falha no upload. Tente novamente.'));
-      }
-    }, 1500); // Simular 1.5s de upload
-  });
-};
-
-/**
- * Simula validação de documento
- * @param {string} documentId 
- * @returns {Promise}
- */
-export const validateDocument = async (documentId) => {
+export const registerTaxId = async (tax_id) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve({
-        success: true,
-        documentId,
-        status: 'validated',
-        validatedAt: new Date().toISOString(),
-      });
+      if (tax_id === '19926443818') {
+        // Scenario 1: User is already registered.
+        resolve({ data: { success: true, register_step: "registered" } });
+      } else if (tax_id === '03596167477') {
+        // Scenario 2: User has a registration in progress.
+        resolve({
+          data: {
+            success: true,
+            data: { user: { register_step: 'driver_license', name: 'Jor***o ** Pn**' } }
+          }
+        });
+      } else {
+        // Scenario 3: New user.
+        resolve({
+          data: {
+            success: true,
+            data: { user: { register_step: 'new' } }
+          }
+        });
+      }
     }, 1000);
   });
 };
 
-/**
- * Simula busca de documento
- * @param {string} documentId 
- * @returns {Promise}
- */
-export const getDocument = async (documentId) => {
+export const deleteRegistration = async (tax_id) => {
+  return new Promise((resolve) => {
+    console.log(`Mock API: Deleting registration for ${tax_id}`);
+    setTimeout(() => {
+      resolve({ success: true });
+    }, 500);
+  });
+};
+
+export const sendPhoneValidationCode = async (tax_id, name, phone) => {
+  return new Promise((resolve) => {
+    console.log(`Mock API: Sending validation code for ${tax_id}, ${name}, ${phone}`);
+    setTimeout(() => {
+      // Simulates sending the code. The backend handles the logic.
+      resolve({ data: { success: true } });
+    }, 1500);
+  });
+};
+
+export const checkPhoneValidationCode = async (tax_id, name, phone, code) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (documentId) {
-        resolve({
-          success: true,
-          data: {
-            documentId,
-            status: 'validated',
-            uploadedAt: new Date().toISOString(),
-          }
-        });
+      if (code === '1111') {
+        // Scenario: Invalid code
+        reject({ code: 'PHONE_VALIDATION_CODE_INVALID', message: 'Código inválido.' });
+      } else if (code === '2222') {
+        // Scenario: Mismatch
+        reject({ code: 'TAX_ID_AND_PHONE_MISMATCH', message: 'Código incorreto.' });
       } else {
-        reject(new Error('Documento não encontrado'));
+        // Scenario: Success
+        console.log(`Mock API: Code ${code} is valid for ${tax_id}`);
+        resolve({
+          data: {
+            success: true,
+            data: { user: { id: 'mock-user-id', tax_id, name, phone } },
+            message: null
+          },
+        });
       }
-    }, 500);
+    }, 1500);
+  });
+};
+
+export const validateDriverLicense = async (tax_id, driver_license, device) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log(`Mock API: Validating DL#${driver_license} for tax_id ${tax_id} on device ${device}`);
+      if (driver_license === '111111') {
+        // Scenario: Mismatch
+        reject({ code: 'DRIVER_LICENSE_NUMBER_MISMATCH', message: 'Número da CNH não corresponde.' });
+      }
+      else if (driver_license === '222222') {
+        // Scenario: Not found
+        reject({ code: 'DRIVER_LICENSE_NUMBER_PENDING_VALIDATION', message: 'Número da CNH não existe.' });
+      } else {
+        // Scenario: Success
+        resolve({ data: { success: true, message: null } });
+      }
+    }, 1500);
   });
 };
