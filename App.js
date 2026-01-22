@@ -5,7 +5,7 @@ import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import BootSplash from 'react-native-bootsplash'; // Nova biblioteca moderna
+import BootSplash from 'react-native-bootsplash';
 
 import { store, persistor } from './src/store'; 
 import { PersistGate } from 'redux-persist/integration/react';
@@ -14,7 +14,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import AppointmentDetailsModal from './src/components/appointments/AppointmentDetailsModal';
 import ChatModal from './src/components/chat/ChatModal';
 import { closeChatModal } from './src/store/slices/chatSlice';
-import { checkAuthStatus } from './src/store/slices/authSlice';
+import { restoreSession } from './src/store/slices/authSlice'; // ✅ MUDANÇA AQUI
 
 import StateGate from './src/components/common/StateGate';
 
@@ -23,16 +23,19 @@ function AppContent() {
   const { isAppLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   
+  // ✅ Executar restoreSession ao iniciar o app (Splash Screen)
   useEffect(() => {
-    dispatch(checkAuthStatus());
+    dispatch(restoreSession());
   }, [dispatch]);
 
+  // ✅ Esconder Splash Screen quando terminar de carregar
   useEffect(() => {
     if (!isAppLoading) {
       BootSplash.hide({ fade: true });
     }
   }, [isAppLoading]);
 
+  // ✅ Mostrar nada enquanto está validando sessão
   if (isAppLoading) {
     return null;
   }

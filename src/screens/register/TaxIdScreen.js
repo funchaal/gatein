@@ -50,20 +50,20 @@ export default function TaxIdScreen({ navigation }) {
             const cleanTaxId = taxId.replace(/\D/g, ''); 
             const result = await dispatch(registerTaxIdRequest({ tax_id: cleanTaxId })).unwrap();
 
-            if (result.register_step === 'registered') {
+            if (result.user.register_step === 'registered') {
                 // User already has an account, redirect to login screen's password step
                 navigation.navigate('Login', { 
                     tax_id: cleanTaxId, 
                     message: 'Você já tem uma conta!' 
                 });
-            } else if (result.data && result.data.user && result.data.user.register_step && result.data.user.register_step !== 'new') {
+            } else if (result.user.register_step !== 'new') {
                 // In-progress registration found
                 navigation.navigate('InProgressConfirmation', {
-                    tax_id: cleanTaxId,
-                    name: result.data.user.name, // Assuming name is returned
-                    register_step: result.data.user.register_step
+                    tax_id: taxId,
+                    name: result.user.name, // Assuming name is returned
+                    register_step: result.user.register_step
                 });
-            } else if (result.data && result.data.user && result.data.user.register_step === 'new') {
+            } else if (result.user.register_step === 'new') {
                 // New registration
                 handleRegistrationStep(navigation, 'Name', { tax_id: cleanTaxId });
             } else {

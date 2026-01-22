@@ -1,18 +1,17 @@
-import React from "react";
-import { Pressable, Text } from "react-native";
+import React, { useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import { useSelector } from "react-redux"; // Importamos o hook para ler o estado
+import { useSelector } from "react-redux";
 
 import BottomTabNavigator from './BottomTabNavigator';
 
-// Importando as telas principais (Área Logada)
+// Telas principais (Área Logada)
 import MapScreen from '../screens/MapScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import TicketScreen from "../screens/TicketScreen";
 import FacialRecognitionScreen from '../screens/FacialRecognitionScreen';
 import CheckinSuccessScreen from '../screens/CheckinSuccessScreen';
 
-// Importando as telas de Auth (Login/Registro)
+// Telas de Auth (Login/Registro)
 import WelcomeScreen from "../screens/WelcomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import TermsScreen from "../screens/TermsScreen";
@@ -32,7 +31,6 @@ import UserNotFoundScreen from "../screens/register/UserNotFoundScreen";
 
 import { COLORS } from "../constants/colors";
 
-
 const Stack = createStackNavigator();
 
 const screenOptions = {
@@ -46,78 +44,173 @@ const screenOptions = {
 };
 
 export default function AppNavigator() {
-    // Pegamos a informação crucial do Redux
-    // Se o checkAuthStatus (do App.js) der sucesso, isso vira TRUE
-    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-    const hasToken = useSelector((state) => state.auth.token !== null);
+    const { isAuthenticated, isOffline, savedTaxId } = useSelector((state) => state.auth);
 
-    let initialRoute;
-    if (isAuthenticated) {
-        initialRoute = "Main";
-    } else if (hasToken) {
-        initialRoute = "Login";
-    } else {
-        initialRoute = "Welcome";
-    }
+    // ✅ LÓGICA DE ROTEAMENTO BASEADA NO ESTADO
+    // Isso acontece DINAMICAMENTE conforme o estado muda
+    const shouldShowAppStack = isAuthenticated; // Online autenticado OU Offline com dados salvos
 
     return (
-        <Stack.Navigator initialRouteName={initialRoute}>
-            {isAuthenticated ? (
+        <Stack.Navigator
+            screenOptions={{
+                // Remove initialRouteName - deixa o Stack decidir dinamicamente
+                animationEnabled: true,
+            }}
+        >
+            {shouldShowAppStack ? (
                 // ---------------------------------------------------------
                 // GRUPO 1: USUÁRIO LOGADO (APP STACK)
-                // O usuário SÓ tem acesso a essas telas se isAuthenticated === true
+                // Acessível quando:
+                // - isAuthenticated = true (sessão válida online)
+                // - isAuthenticated = true + isOffline = true (modo offline)
                 // ---------------------------------------------------------
                 <Stack.Group>
-                    <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
-                    <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
-                    <Stack.Screen name="Alerts" component={AlertsScreen} options={{ title: 'Alertas', ...screenOptions }} />
-                    <Stack.Screen name='Ticket' component={TicketScreen} options={{ title: 'Ticket de Operação', ...screenOptions }} />
-                    <Stack.Screen name="FacialRecognition" component={FacialRecognitionScreen} options={{ title: 'Reconhecimento Facial', ...screenOptions }} />
-                    <Stack.Screen name="CheckinSuccess" component={CheckinSuccessScreen} options={{ headerShown: false }} />
+                    <Stack.Screen 
+                        name="Main" 
+                        component={BottomTabNavigator} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name="Map" 
+                        component={MapScreen} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name="Alerts" 
+                        component={AlertsScreen} 
+                        options={{ title: 'Alertas', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name='Ticket' 
+                        component={TicketScreen} 
+                        options={{ title: 'Ticket de Operação', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name="FacialRecognition" 
+                        component={FacialRecognitionScreen} 
+                        options={{ title: 'Reconhecimento Facial', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name="CheckinSuccess" 
+                        component={CheckinSuccessScreen} 
+                        options={{ headerShown: false }} 
+                    />
                 </Stack.Group>
             ) : (
                 // ---------------------------------------------------------
                 // GRUPO 2: USUÁRIO NÃO LOGADO (AUTH STACK)
-                // Se isAuthenticated === false, só isso aqui existe
+                // Acessível quando:
+                // - isAuthenticated = false (sem credenciais ou sessão expirada)
                 // ---------------------------------------------------------
                 <Stack.Group>
-                    <Stack.Screen name='Login' component={LoginScreen} options={{ headerShown: false }} />
-                    <Stack.Screen name='Welcome' component={WelcomeScreen} options={{ headerShown: false }} />
-                    <Stack.Screen name='UserNotFound' component={UserNotFoundScreen} options={{ headerShown: false }} />
+                    {/* 
+                        A ordem aqui importa para o initialRouteName automático:
+                        - Se tem savedTaxId → vai para Login
+                        - Se não tem → vai para Welcome
+                    */}
+                    <Stack.Screen 
+                        name='Welcome' 
+                        component={WelcomeScreen} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name='Login' 
+                        component={LoginScreen} 
+                        options={{ headerShown: false }}
+                        initialParams={{ tax_id: savedTaxId }} // ✅ Passa savedTaxId
+                    />
+                    <Stack.Screen 
+                        name='UserNotFound' 
+                        component={UserNotFoundScreen} 
+                        options={{ headerShown: false }} 
+                    />
                     
                     {/* Telas de Registro */}
-                    <Stack.Screen name='InProgressConfirmation' component={InProgressConfirmationScreen} options={{ headerShown: false }} />
                     <Stack.Screen 
-    name='TaxId' 
-    component={TaxIdScreen} 
-    options={({ navigation }) => ({
-        title: '', 
-        ...screenOptions, 
-    })} 
-/>
-                    <Stack.Screen name='Name' component={NameScreen} options={{ title: '', ...screenOptions }} />
-                    <Stack.Screen name='Phone' component={PhoneScreen} options={{ title: '', ...screenOptions }} />
+                        name='InProgressConfirmation' 
+                        component={InProgressConfirmationScreen} 
+                        options={{ headerShown: false }} 
+                    />
                     <Stack.Screen 
-          name="License" 
-          component={LicenseScreen}
-          options={{ title: 'Documento de Identificação', ...screenOptions }}
-        />
-        <Stack.Screen 
-          name="DocumentCamera" 
-          component={DocumentCamera}
-          options={{ 
-            headerShown: false,
-            gestureEnabled: false,
-            presentation: 'fullScreenModal', ...screenOptions
-          }}
-        />
-                    <Stack.Screen name='AuthFacialRecognition' component={FacialRecognitionScreen} options={{ title: 'Reconhecimento Facial', ...screenOptions }} />
-                    <Stack.Screen name='PhoneCode' component={PhoneCodeScreen} options={{ title: '', ...screenOptions, headerLeft: () => null, gestureEnabled: false }} />
-                    <Stack.Screen name='DriverLicenseNumber' component={DriverLicenseNumberScreen} options={{ title: '', ...screenOptions, headerLeft: () => null, gestureEnabled: false }} />
-                    <Stack.Screen name='DriverLicenseInvalid' component={DriverLicenseInvalidScreen} options={{ headerShown: false }} />
-                    <Stack.Screen name='DriverLicensePendingValidation' component={DriverLicensePendingValidationScreen} options={{ headerShown: false }} />
-                    <Stack.Screen name='Password' component={PasswordScreen} options={{ title: '', ...screenOptions, headerLeft: () => null, gestureEnabled: false }} />
-                    <Stack.Screen name='Success' component={SuccessScreen} options={{ headerShown: false }} />
+                        name='TaxId' 
+                        component={TaxIdScreen} 
+                        options={{ title: '', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name='Name' 
+                        component={NameScreen} 
+                        options={{ title: '', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name='Phone' 
+                        component={PhoneScreen} 
+                        options={{ title: '', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name="License" 
+                        component={LicenseScreen}
+                        options={{ title: 'Documento de Identificação', ...screenOptions }}
+                    />
+                    <Stack.Screen 
+                        name="DocumentCamera" 
+                        component={DocumentCamera}
+                        options={{ 
+                            headerShown: false,
+                            gestureEnabled: false,
+                            presentation: 'fullScreenModal', 
+                            ...screenOptions
+                        }}
+                    />
+                    <Stack.Screen 
+                        name='AuthFacialRecognition' 
+                        component={FacialRecognitionScreen} 
+                        options={{ title: 'Reconhecimento Facial', ...screenOptions }} 
+                    />
+                    <Stack.Screen 
+                        name='PhoneCode' 
+                        component={PhoneCodeScreen} 
+                        options={{ 
+                            title: '', 
+                            ...screenOptions, 
+                            headerLeft: () => null, 
+                            gestureEnabled: false 
+                        }} 
+                    />
+                    <Stack.Screen 
+                        name='DriverLicenseNumber' 
+                        component={DriverLicenseNumberScreen} 
+                        options={{ 
+                            title: '', 
+                            ...screenOptions, 
+                            headerLeft: () => null, 
+                            gestureEnabled: false 
+                        }} 
+                    />
+                    <Stack.Screen 
+                        name='DriverLicenseInvalid' 
+                        component={DriverLicenseInvalidScreen} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name='DriverLicensePendingValidation' 
+                        component={DriverLicensePendingValidationScreen} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name='Password' 
+                        component={PasswordScreen} 
+                        options={{ 
+                            title: '', 
+                            ...screenOptions, 
+                            headerLeft: () => null, 
+                            gestureEnabled: false 
+                        }} 
+                    />
+                    <Stack.Screen 
+                        name='Success' 
+                        component={SuccessScreen} 
+                        options={{ headerShown: false }} 
+                    />
                 </Stack.Group>
             )}
         </Stack.Navigator>

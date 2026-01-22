@@ -2,7 +2,6 @@ import React from "react";
 import { StyleSheet, View, Text, Pressable } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 
-// MUDANÇA AQUI: Importação direta do pacote padrão do CLI
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { COLORS } from "../constants/colors"; 
@@ -69,16 +68,16 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flex: 1,
-        zIndex: 1,      
+        zIndex: 1, 
         paddingTop: '35%', 
         paddingHorizontal: 20,
         alignItems: 'flex-start', 
     },
     title: {
-        fontSize: 43, 
-        color: COLORS.textSecondary, // Certifique-se que essa cor existe no seu arquivo colors
-        marginBottom: 30, 
-        lineHeight: 50,   
+        fontSize: 43,
+        color: COLORS.textSecondary,
+        marginBottom: 30,
+        lineHeight: 50,
     },
     boldText: {
         fontWeight: 'bold',

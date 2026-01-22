@@ -1,13 +1,8 @@
-
-
-// --- SIMULAÇÃO DA API (MOCK) ---
-// Em produção, isso seria um `axios.get('/dashboard')`
 export const appointmentsAPICall = async (userId) => {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve({
                 data: {
-                    // Dados que seriam analisados e retornados pelo Back-end
                     terminals: [
                         {
                             id: 1,
@@ -19,15 +14,91 @@ export const appointmentsAPICall = async (userId) => {
                             appointmentsConfig: [
                                 {
                                     id: 101,
-                                    type: 'CONTAINER_LOAD',
-                                    title: 'Carga de Contêiner',
-                                    main: {
-                                        h1: { label: 'Container', key: 'cargo_summary', showLabel: true, position: 'above', style: { fontWeight: 'bold', fontSize: '24', color: '#0F172A' } },
-                                        h2: { label: 'Placa', key: 'license_plate', showLabel: true, position: 'above', style: { fontSize: '16', color: '#64748B' } },
-                                        details: [{ key: 'carrier_name', label: 'Transportadora', showLabel: true }]
+                                    operation_type: 'CONTAINER_IMPORT',
+                                    title: 'Importação de Container',
+                                    // NOVA ESTRUTURA: card_layout
+                                    card_layout: {
+                                        header: { 
+                                            label: 'Container', 
+                                            key: 'unit_id' 
+                                        },
+                                        sub_header: { 
+                                            label: 'Placa', 
+                                            key: 'plate' 
+                                        },
+                                        body_rows: [
+                                            { label: 'Navio', key: 'vessel_name' },
+                                            { label: 'Booking', key: 'booking' }
+                                        ]
                                     },
-                                    popup: [{ key: 'carrier_name', label: 'Transp.', showLabel: true }],
-                                    actions: [{ id: 'checkin', label: 'Check-in', type: 'primary' }]
+                                    // NOVA ESTRUTURA: modal_layout
+                                    modal_layout: [
+                                        { 
+                                            type: 'alert', 
+                                            color: 'red', 
+                                            icon: 'hand-right', 
+                                            key: 'block_reason',
+                                            title: 'Entrada Bloqueada' 
+                                        },
+                                        { 
+                                            type: 'alert', 
+                                            color: 'blue', 
+                                            icon: 'information-circle', 
+                                            key: 'gate_instruction'
+                                        },
+                                        // { type: 'section', title: 'Acesso' },
+                                        { type: 'section', title: 'Dados da Carga' },
+                                        { type: 'field', label: 'Peso Bruto', key: 'gross_weight' },
+                                        { type: 'field', label: 'Lacre', key: 'seal_number' },
+                                        { type: 'field', label: 'Temperatura', key: 'temp_setting' }, 
+                                        {
+                                            type: 'qrcode',
+                                            title: 'Autorização de Entrada',
+                                            caption: 'Aproxime do leitor no Gate 3',
+                                            key: 'gate_pass_token'
+                                        },
+                                    ],
+                                    actions: [
+                                        { id: 'checkin', label: 'Check-in', type: 'primary' }
+                                    ]
+                                },
+                                {
+                                    id: 102,
+                                    operation_type: 'CONTAINER_EXPORT',
+                                    title: 'Exportação de Container',
+                                    card_layout: {
+                                        header: { 
+                                            label: 'Container', 
+                                            key: 'unit_id' 
+                                        },
+                                        sub_header: { 
+                                            label: 'Placa', 
+                                            key: 'plate' 
+                                        },
+                                        body_rows: [
+                                            { label: 'Transportadora', key: 'carrier_name' },
+                                            { label: 'Destino', key: 'destination_port' }
+                                        ]
+                                    },
+                                    modal_layout: [
+                                        { 
+                                            type: 'alert', 
+                                            color: 'green', 
+                                            icon: 'check-circle', 
+                                            key: 'clearance_status',
+                                            title: 'Status Liberação'
+                                        },
+                                        { type: 'section', title: 'Informações de Carga' },
+                                        { type: 'field', label: 'Peso', key: 'gross_weight' },
+                                        { type: 'field', label: 'Tipo', key: 'cargo_type' },
+                                        // { type: 'section', title: 'Acesso' },
+                                        {
+                                            type: 'qrcode',
+                                            title: 'Gate Pass',
+                                            caption: 'Apresente na portaria',
+                                            key: 'gate_pass_token'
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -41,13 +112,35 @@ export const appointmentsAPICall = async (userId) => {
                             appointmentsConfig: [
                                 {
                                     id: 201,
-                                    type: 'DEFAULT',
+                                    operation_type: 'DEFAULT',
                                     title: 'Acesso Geral',
-                                    main: {
-                                        h1: { label: 'Veículo', key: 'license_plate', showLabel: true, style: { fontWeight: '800', fontSize: '26' } },
-                                        details: [{ key: 'gate_assignment', label: 'Dirija-se para', showLabel: true }]
+                                    card_layout: {
+                                        header: { 
+                                            label: 'Veículo', 
+                                            key: 'plate' 
+                                        },
+                                        body_rows: [
+                                            { label: 'Portão', key: 'gate_assignment' },
+                                            { label: 'Motorista', key: 'driver_name' }
+                                        ]
                                     },
-                                    popup: [{ key: 'driver_name', label: 'Motorista', showLabel: false }]
+                                    modal_layout: [
+                                        { 
+                                            type: 'alert', 
+                                            color: 'blue', 
+                                            icon: 'information', 
+                                            key: 'access_instructions'
+                                        },
+                                        { type: 'section', title: 'Dados do Acesso' },
+                                        { type: 'field', label: 'Motorista', key: 'driver_name' },
+                                        { type: 'field', label: 'Portão', key: 'gate_assignment' },
+                                        {
+                                            type: 'qrcode',
+                                            title: 'Passe de Entrada',
+                                            caption: 'Apresente este código na entrada',
+                                            key: 'gate_pass_token'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -56,31 +149,77 @@ export const appointmentsAPICall = async (userId) => {
                         {
                             id: '1',
                             terminalId: 1,
-                            type: 'CONTAINER_LOAD',
+                            operation_type: 'CONTAINER_IMPORT',
                             status: 'Agendado',
-                            booking_number: 'DPW-9090',
-                            license_plate: 'NZR-7854',
-                            driver_name: 'Rafael Silva',
-                            start_time: '2024-10-21 14:00',
-                            window_start: '2024-10-21 14:00',
-                            carrier_name: 'Cooperativa Santista',
-                            cargo_summary: '40\' Dry HC'
+                            booking: 'DPW-9090',
+                            schedule_start_time: '2024-10-21 14:00',
+                            // custom_data contém os campos dinâmicos
+                            custom_data: {
+                                unit_id: 'TCLU1234567888',
+                                plate: 'NZR-7854',
+                                vessel_name: 'MSC VIVIANA',
+                                booking: 'MSCU8745123',
+                                gross_weight: '28.500 kg',
+                                seal_number: 'SL789456',
+                                temp_setting: '-18°C',
+                                gate_instruction: 'Dirija-se ao Gate 3 - Pista A após o check-in',
+                                gate_pass_token: 'DPWS-2024-001-9090'
+                            }
                         },
                         {
                             id: '2',
-                            terminalId: 2,
-                            type: 'DEFAULT',
+                            terminalId: 1,
+                            operation_type: 'CONTAINER_EXPORT',
                             status: 'No Pátio',
-                            booking_number: 'BTP-5502',
-                            license_plate: 'NZR-7854',
-                            driver_name: 'Rafael Silva',
-                            start_time: '2024-10-21 16:30',
-                            gate_assignment: 'Portão B - Pista 3'
+                            booking: 'DPW-9091',
+                            schedule_start_time: '2024-10-21 16:30',
+                            custom_data: {
+                                unit_id: 'MSCU9876543',
+                                plate: 'ABC-1234',
+                                carrier_name: 'Transportadora Santos Ltda',
+                                destination_port: 'Rotterdam, NL',
+                                gross_weight: '24.800 kg',
+                                cargo_type: 'Dry',
+                                clearance_status: 'Liberado pela Receita Federal',
+                                gate_pass_token: 'DPWS-2024-001-9091'
+                            }
+                        },
+                        {
+                            id: '3',
+                            terminalId: 2,
+                            operation_type: 'DEFAULT',
+                            status: 'Agendado',
+                            booking: 'BTP-5502',
+                            schedule_start_time: '2024-10-21 18:00',
+                            custom_data: {
+                                plate: 'XYZ-9876',
+                                driver_name: 'João Silva',
+                                gate_assignment: 'Portão B - Pista 3',
+                                access_instructions: 'Acesso liberado. Siga a sinalização após o portão.',
+                                gate_pass_token: 'BTP-2024-003-5502'
+                            }
+                        },
+                        {
+                            id: '4',
+                            terminalId: 1,
+                            operation_type: 'CONTAINER_IMPORT',
+                            status: 'Expirado',
+                            booking: 'DPW-8888',
+                            schedule_start_time: '2024-10-20 10:00',
+                            custom_data: {
+                                unit_id: 'HLBU2233445',
+                                plate: 'DEF-5678',
+                                vessel_name: 'CMA CGM BAHIA',
+                                booking: 'CMAU5566778',
+                                block_reason: 'Agendamento expirado. Reagende na plataforma.',
+                                gross_weight: '22.100 kg',
+                                seal_number: 'SL123987'
+                            }
                         }
                     ]
                 }
             });
-        }, 1500); // 1.5s de delay para simular rede
+        }, 1500);
     });
 };
 
@@ -166,100 +305,135 @@ export const chatsAPICall = async (userId) => {
   });
 }
 
-// Esse arquivo simula as respostas que o seu servidor Python/Node daria.
-// Útil para testar loading states, erros e fluxo sem internet.
-
-export const mockLogin = (tax_id, password) => {
+export const mockLogin = (tax_id, password, device) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
+      console.log('Login attempt:', { tax_id, device });
+
       // Caso 1: Sucesso
       if (tax_id === '43316667865' && password === '123456') {
         resolve({
           status: 200,
           data: {
             success: true,
-            user: {
-              id: 1,
-              name: 'Rafael Motorista',
-              tax_id: '199.264.438-18',
-              role: 'driver',
-              cnh: '1234567890',
+            data: {
+              token: 'mock_jwt_token_' + Date.now(),
+              user: {
+                id: 1,
+                name: 'Rafael Motorista',
+                tax_id: '199.264.438-18',
+                driver_license: '1234567890',
+                driver_id: 'DRV-001',
+              },
             },
           },
         });
+      }
       // Caso 2: Usuário não encontrado
-      } else if (tax_id === '03596167477') {
+      else if (tax_id === '03596167477') {
         reject({
           response: {
             status: 404,
             data: {
               success: false,
-              error: { code: 'USER_NOT_FOUND', message: null },
+              error: {
+                code: 'USER_NOT_FOUND',
+                message: 'Usuário não encontrado',
+              },
             },
           },
         });
-      // Caso 3: Senha inválida
-      } else if (tax_id === '43316667865') {
+      }
+      // Caso 3: Senha inválida (tax_id correto)
+      else if (tax_id === '43316667865') {
         reject({
           response: {
             status: 401,
             data: {
               success: false,
-              error: { code: 'PASSWORD_INVALID', message: 'Senha incorreta' },
+              error: {
+                code: 'PASSWORD_INVALID',
+                message: 'Senha incorreta',
+              },
             },
           },
         });
+      }
       // Caso 4: Dispositivo não validado
-      } else if (tax_id === '19926443818') {
+      else if (tax_id === '19926443818') {
         reject({
           response: {
             status: 403,
             data: {
               success: false,
-              error: { code: 'DEVICE_NOT_VALIDATED', message: null },
+              error: {
+                code: 'DEVICE_NOT_VALIDATED',
+                message: 'Dispositivo não autorizado. Entre em contato com o suporte.',
+              },
             },
           },
         });
-      } else {
-        // Default: Senha inválida para qualquer outro caso
+      }
+      // Default: Senha inválida
+      else {
         reject({
           response: {
             status: 401,
             data: {
               success: false,
-              error: { code: 'PASSWORD_INVALID', message: 'Senha incorreta' },
+              error: {
+                code: 'PASSWORD_INVALID',
+                message: 'Senha incorreta',
+              },
             },
           },
         });
       }
-    }, 1500); // Delay para simular a rede
+    }, 1500);
   });
 };
 
-export const mockValidateToken = () => {
+/**
+ * Mock para restaurar sessão
+ * Rota: POST /api/v1/auth/session/restore
+ */
+export const mockRestoreSession = (token, device) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Simula 90% de chance de sucesso e 10% de chance do token ter expirado
-      // Mude para false para testar o logout automático
-      const isTokenValid = true; 
+      const isTokenValid = true; // Mude para false para testar sessão expirada
+      const isSessionActive = true; // Simula verificação no Redis
 
-      if (isTokenValid) {
+      if (isTokenValid && isSessionActive) {
         resolve({
           data: {
-            id: 1,
-            name: 'Rafael Motorista',
-            tax_id: '123.456.789-00',
-            role: 'driver',
-            cnh: '1234567890',
+            success: true,
+            data: {
+              user: {
+                id: 1,
+                tax_id: '433.166.678-65',
+                name: 'Rafael Motorista',
+                driver_id: 'DRV-001',
+                role: 'driver',
+                driver_license: '1234567890',
+              },
+            },
           },
         });
       } else {
-        // Simula token expirado (o app deve deslogar)
         reject({
-          response: { status: 401 },
+          response: {
+            status: 401,
+            data: {
+              success: false,
+              error: {
+                code: 'JWT_TOKEN_INVALID',
+                message: 'Sessão expirada. Faça login novamente.',
+              },
+            },
+          },
         });
       }
-    }, 1500); // 1.5s simulando latência de rede na estrada
+    }, 1500);
   });
 };
 
@@ -269,13 +443,13 @@ export const registerTaxId = async (tax_id) => {
     setTimeout(() => {
       if (tax_id === '19926443818') {
         // Scenario 1: User is already registered.
-        resolve({ data: { success: true, register_step: "registered" } });
+        resolve({ data: { success: true, user: { register_step: "registered" }} });
       } else if (tax_id === '03596167477') {
         // Scenario 2: User has a registration in progress.
         resolve({
           data: {
             success: true,
-            data: { user: { register_step: 'driver_license', name: 'Jor***o ** Pn**' } }
+            user: { register_step: 'driver_license', name: 'Jor***o ** Pn**' }
           }
         });
       } else {
@@ -283,7 +457,7 @@ export const registerTaxId = async (tax_id) => {
         resolve({
           data: {
             success: true,
-            data: { user: { register_step: 'new' } }
+            user: { register_step: 'new' } 
           }
         });
       }
@@ -295,7 +469,7 @@ export const deleteRegistration = async (tax_id) => {
   return new Promise((resolve) => {
     console.log(`Mock API: Deleting registration for ${tax_id}`);
     setTimeout(() => {
-      resolve({ success: true });
+      resolve({ data: { success: true }});
     }, 500);
   });
 };
@@ -325,7 +499,7 @@ export const checkPhoneValidationCode = async (tax_id, name, phone, code) => {
         resolve({
           data: {
             success: true,
-            data: { user: { id: 'mock-user-id', tax_id, name, phone } },
+            user: { id: 'mock-user-id', tax_id, name, phone } ,
             message: null
           },
         });

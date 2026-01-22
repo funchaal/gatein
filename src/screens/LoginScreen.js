@@ -3,31 +3,28 @@ import {
     View,
     Text,
     StyleSheet,
-    // SafeAreaView, // <--- REMOVIDO DAQUI
     KeyboardAvoidingView,
     Platform,
     LayoutAnimation,
     UIManager,
     Keyboard,
-    Pressable,
-    TouchableOpacity
+    TouchableOpacity,
+    Alert
 } from 'react-native';
 
-// --- ADICIONADO AQUI ---
 import { SafeAreaView } from 'react-native-safe-area-context'; 
-
 import { useSelector, useDispatch } from 'react-redux';
 
 // Components
 import Input from '../components/common/Input';
 import MainAsyncButton from '../components/common/MainAsyncButton';
+import SecondaryButton from '../components/common/SecondaryButton';
 
 // Store & Utils
-import { loginRequest } from '../store/slices/authSlice';
+import { loginRequest, clearError } from '../store/slices/authSlice';
 import { isValidCPF } from '../utils/validators';
 import { maskCPF } from '../utils/masks';
 import { COLORS } from '../constants/colors';
-import SecondaryButton from '../components/common/SecondaryButton';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -35,10 +32,14 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function LoginScreen({ navigation, route }) {
     const dispatch = useDispatch();
-    const { user, token } = useSelector((state) => state.auth);
+    const { savedTaxId, error: authError } = useSelector((state) => state.auth);
 
-    const [step, setStep] = useState(route?.params?.tax_id ? 'password' : 'cpf');
-    const [cpf, setCpf] = useState(route?.params?.tax_id || '');
+    // Prioriza: route params > savedTaxId do Keychain
+    const initialCpf = route?.params?.tax_id || savedTaxId || '';
+    const initialStep = initialCpf ? 'password' : 'cpf';
+
+    const [step, setStep] = useState(initialStep);
+    const [cpf, setCpf] = useState(initialCpf ? maskCPF(initialCpf) : '');
     const [password, setPassword] = useState('');
     
     const [cpfError, setCpfError] = useState('');
@@ -46,11 +47,13 @@ export default function LoginScreen({ navigation, route }) {
     const [loading, setLoading] = useState(false);
     const [validCpf, setValidCpf] = useState(false);
     
+    // Limpar erros ao trocar de step
     useEffect(() => {
         if (step === 'cpf') setPasswordError('');
         else setCpfError('');
     }, [step]);
     
+    // Validação de CPF com debounce
     useEffect(() => {
         setCpfError('');
         if (cpf.length < 2) {
@@ -70,24 +73,44 @@ export default function LoginScreen({ navigation, route }) {
         return () => clearTimeout(timeoutId);
     }, [cpf]);
 
+    // Limpar erro de senha ao digitar
     useEffect(() => {
         setPasswordError('');
-    }, [password]);
+        dispatch(clearError());
+    }, [password, dispatch]);
 
-
+    // Preencher CPF automaticamente se vier do savedTaxId
     useEffect(() => {
-        if (token && user?.tax_id) {
-            setCpf(user.tax_id);
+        if (savedTaxId && !cpf) {
+            setCpf(maskCPF(savedTaxId));
             setStep('password');
         }
-    }, [token, user]);
+    }, [savedTaxId]);
+
+    // Tratar erro de dispositivo não validado
+    useEffect(() => {
+        if (authError?.data?.error?.code === 'DEVICE_NOT_VALIDATED') {
+            Alert.alert(
+                'Dispositivo não autorizado',
+                authError.data.error.message || 'Este dispositivo não está autorizado. Entre em contato com o suporte.',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => dispatch(clearError())
+                    }
+                ]
+            );
+        }
+    }, [authError, dispatch]);
 
     const handleSwitchAccount = () => {
+        dispatch(clearError());
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setStep('cpf');
         setCpf('');
         setPassword('');
         setPasswordError('');
+        setCpfError('');
     };
 
     const handleContinue = async () => {
@@ -100,33 +123,47 @@ export default function LoginScreen({ navigation, route }) {
         } else {
             setLoading(true);
             setPasswordError('');
+            dispatch(clearError());
+            
             try {
                 const cleanTaxId = cpf.replace(/\D/g, '');
                 const login_payload = { tax_id: cleanTaxId, password };
                 
-                // O dispatch agora lida com o sucesso internamente.
-                // Se der certo, o estado 'isAuthenticated' vai mudar e o AppNavigator
-                // vai automaticamente levar para a tela principal.
+                // Dispatch login - credenciais serão salvas automaticamente no Keychain
                 await dispatch(loginRequest(login_payload)).unwrap();
+                
+                // Se chegou aqui, login foi bem-sucedido
+                // O AppNavigator vai redirecionar automaticamente
 
             } catch (error) {
-                // O 'error' agora é o objeto que definimos no rejectWithValue
+                // Tratar erros específicos
                 const { data, status } = error;
                 const cleanTaxId = cpf.replace(/\D/g, '');
                 const login_payload = { tax_id: cleanTaxId, password };
 
-                if (status === 404 && data.error.code === 'USER_NOT_FOUND') {
+                if (status === 404 && data?.error?.code === 'USER_NOT_FOUND') {
+                    // Usuário não encontrado -> tela de cadastro
                     navigation.replace('UserNotFound', { tax_id: cleanTaxId });
                 } 
-                else if (status === 403 && data.error.code === 'DEVICE_NOT_VALIDATED') {
-                    navigation.replace('DriverLicenseNumber', { from_login: true, login_payload });
+                else if (status === 403 && data?.error?.code === 'DEVICE_NOT_VALIDATED') {
+                    // Dispositivo não validado -> validar CNH
+                    navigation.replace('DriverLicenseNumber', { 
+                        from_login: true, 
+                        login_payload 
+                    });
                 }
-                else if (status === 401 && data.error.code === 'PASSWORD_INVALID') {
-                    setPasswordError(data.error.message);
+                else if (status === 401 && data?.error?.code === 'PASSWORD_INVALID') {
+                    // Senha incorreta
+                    setPasswordError(data.error.message || 'Senha incorreta');
+                }
+                else if (error?.code === 'DEVICE_ID_ERROR') {
+                    // Erro ao obter device ID
+                    setPasswordError('Não foi possível identificar o dispositivo');
                 }
                 else {
                     // Erro genérico
                     setPasswordError('Ocorreu um erro inesperado. Tente novamente.');
+                    console.error('Login error:', error);
                 }
             } finally {
                 setLoading(false);
@@ -137,11 +174,6 @@ export default function LoginScreen({ navigation, route }) {
     const renderUserBadge = () => (
         <View style={styles.cpfBadgeContainer}>
             <View style={styles.cpfBadge}>
-                {/* <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarText}>
-                        {user?.name ? user.name[0] : 'U'}
-                    </Text>
-                </View> */}
                 <View style={{ flex: 1 }}>
                     <Text style={styles.badgeLabel}>Acessando como</Text>
                     <Text style={styles.badgeValue}>
@@ -234,7 +266,6 @@ export default function LoginScreen({ navigation, route }) {
     );
 
     return (
-        // O uso aqui permanece o mesmo, mas agora vem da biblioteca correta
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"} 
@@ -296,20 +327,6 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.card || '#f7f7f7ff', 
         borderRadius: 15,
         padding: 16,
-    },
-    avatarCircle: {
-        width: 45,
-        height: 45,
-        borderRadius: 30,
-        backgroundColor: COLORS.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 15,
-    },
-    avatarText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-        fontSize: 18,
     },
     badgeLabel: {
         fontSize: 16,

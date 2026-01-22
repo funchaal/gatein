@@ -57,23 +57,101 @@ export default function AppointmentCard({ item, config }) {
         dispatch(selectAppointment({ appointment: item, config }));
     };
 
+    // Helper para buscar valor em item.custom_data ou diretamente em item
+    const getValue = (key) => {
+        if (!item || typeof item !== 'object') return null;
+        
+        // Primeiro tenta em custom_data
+        if (item.custom_data && item.custom_data[key] !== undefined && item.custom_data[key] !== null && item.custom_data[key] !== '') {
+            return item.custom_data[key];
+        }
+        
+        // Depois tenta diretamente no item
+        if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
+            return item[key];
+        }
+        
+        return null;
+    };
+
+    // Helper para buscar valor com fallback em múltiplas chaves (compatibilidade com estrutura antiga)
     const get = (key) => {
         if (!item || typeof item !== 'object') return null;
         if (Array.isArray(key)) {
             for (const k of key) {
-                if (item[k] !== undefined) return item[k];
+                const value = getValue(k);
+                if (value !== null) return value;
             }
             return null;
         }
-        return item[key] || null;
+        return getValue(key);
     };
 
-    const status = get(['Status', 'status']) || 'Desconhecido';
+    const status = get(['status', 'Status']) || 'Desconhecido';
     const statusBaseColor = getStatusColor(status);
-    const displayTime = formatDate(get(['window_start', 'Start_Time', 'start_time']));
-    const displayId = get(['booking_number', 'Appt', 'id']);
+    const displayTime = formatDate(get(['schedule_start_time', 'Start_Time', 'start_time', 'scheduled_time']));
+    const displayId = get(['booking_number', 'Appt', 'id', 'booking']);
 
-    // Helper genérico para renderizar um campo (seja h1, h2, ou detalhe)
+    // Verifica se usa nova estrutura (card_layout) ou antiga (main)
+    const useNewLayout = config?.card_layout !== undefined;
+
+    // Renderiza campos da NOVA estrutura (card_layout)
+    const renderNewLayout = () => {
+        const { header, sub_header, body_rows } = config.card_layout;
+
+        // Header (título principal)
+        const headerValue = header?.key ? getValue(header.key) : null;
+        
+        // Sub-header
+        const subHeaderValue = sub_header?.key ? getValue(sub_header.key) : null;
+
+        return (
+            <>
+                <View style={styles.mainRow}>
+                    <View style={styles.mainContent}>
+                        {/* Header */}
+                        {headerValue && (
+                            <View>
+                                {header.label && <Text style={styles.fieldLabel}>{header.label}</Text>}
+                                <Text style={styles.h1Default}>{headerValue}</Text>
+                            </View>
+                        )}
+
+                        {/* Sub-header */}
+                        {subHeaderValue && (
+                            <View style={{ marginTop: 4 }}>
+                                {sub_header.label && <Text style={styles.fieldLabel}>{sub_header.label}</Text>}
+                                <Text style={styles.h2Default}>{subHeaderValue}</Text>
+                            </View>
+                        )}
+                    </View>
+                    
+                    <View style={[styles.badge, { backgroundColor: statusBaseColor + '20' }]}>
+                        <Text style={[styles.badgeText, { color: statusBaseColor }]}>{status}</Text>
+                    </View>
+                </View>
+
+                {/* Body rows */}
+                {body_rows && body_rows.length > 0 && (
+                    <View style={styles.footerContainer}>
+                        {body_rows.map((row, index) => {
+                            const value = row.key ? getValue(row.key) : null;
+                            if (!value) return null;
+
+                            return (
+                                <View key={`${row.key}-${index}`} style={styles.infoRow}>
+                                    {row.label && <Text style={styles.infoLabel}>{row.label}</Text>}
+                                    <Text style={styles.infoValue}>{value}</Text>
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
+            </>
+        );
+    };
+
+    // Renderiza campos da estrutura ANTIGA (main.h1, main.h2, main.details)
     const renderField = (fieldConfig, defaultStyle) => {
         if (!fieldConfig || !fieldConfig.key) return null;
 
@@ -102,6 +180,31 @@ export default function AppointmentCard({ item, config }) {
         );
     };
 
+    const renderOldLayout = () => {
+        return (
+            <>
+                <View style={styles.mainRow}>
+                    <View style={styles.mainContent}>
+                        {/* Renderiza H1 e H2 a partir da estrutura antiga */}
+                        {config?.main?.h1 && renderField(config.main.h1, styles.h1Default)}
+                        {config?.main?.h2 && renderField(config.main.h2, styles.h2Default)}
+                    </View>
+                    
+                    <View style={[styles.badge, { backgroundColor: statusBaseColor + '20' }]}>
+                        <Text style={[styles.badgeText, { color: statusBaseColor }]}>{status}</Text>
+                    </View>
+                </View>
+
+                {/* Renderiza os detalhes do card a partir de `main.details` */}
+                {config?.main?.details && config.main.details.length > 0 && (
+                    <View style={styles.footerContainer}>
+                        {config.main.details.map(detailConfig => renderField(detailConfig, styles.infoValue))}
+                    </View>
+                )}
+            </>
+        );
+    };
+
     return (
         <Pressable 
             style={({ pressed }) => [ styles.card, pressed && styles.cardPressed ]} 
@@ -112,24 +215,8 @@ export default function AppointmentCard({ item, config }) {
                 <Text style={styles.idText}>#{displayId}</Text>
             </View>
 
-            <View style={styles.mainRow}>
-                <View style={styles.mainContent}>
-                    {/* Renderiza H1 e H2 a partir da nova estrutura */}
-                    {config?.main?.h1 && renderField(config.main.h1, styles.h1Default)}
-                    {config?.main?.h2 && renderField(config.main.h2, styles.h2Default)}
-                </View>
-                
-                <View style={[styles.badge, { backgroundColor: statusBaseColor + '20' }]}>
-                    <Text style={[styles.badgeText, { color: statusBaseColor }]}>{status}</Text>
-                </View>
-            </View>
-
-            {/* Renderiza os detalhes do card a partir de `main.details` */}
-            {config?.main?.details && config.main.details.length > 0 && (
-                 <View style={styles.footerContainer}>
-                    {config.main.details.map(detailConfig => renderField(detailConfig, styles.infoValue))}
-                </View>
-            )}
+            {/* Renderiza layout novo ou antigo baseado na estrutura do config */}
+            {useNewLayout ? renderNewLayout() : renderOldLayout()}
         </Pressable>
     );
 }
@@ -172,6 +259,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     mainContent: {
+        marginTop: 12, 
         flex: 1,
         gap: 2,
     },
@@ -181,9 +269,15 @@ const styles = StyleSheet.create({
         color: THEME.slate900,
     },
     h2Default: {
-        fontSize: 14,
+        fontSize: 20,
         fontWeight: '500',
         color: THEME.slate600,
+    },
+    fieldLabel: {
+        fontSize: 14,
+        color: THEME.slate400,
+        fontWeight: '500',
+        marginBottom: 2,
     },
     badge: {
         paddingHorizontal: 10,
@@ -204,19 +298,17 @@ const styles = StyleSheet.create({
     },
     infoRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: 2,
     },
     infoLabel: {
         fontSize: 14,
         color: THEME.slate400,
-        width: 110,
         fontWeight: '500',
     },
     infoValue: {
-        fontSize: 13,
+        fontSize: 14,
         color: THEME.slate900,
-        fontWeight: '600',
-        flex: 1,
+        fontWeight: '600'
     }
 });
