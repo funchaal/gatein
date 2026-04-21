@@ -1,30 +1,6 @@
-import { createSlice, createSelector, createAsyncThunk } from '@reduxjs/toolkit';
-import { setTerminals } from './terminalsSlice'; // Importamos a ação da outra slice
-import { appointmentsAPICall } from '../../services/mockData'; // Simulação da API
+import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { api } from '../../services/api';
 
-// --- THUNK ASSÍNCRONO ---
-export const fetchAppointmentsData = createAsyncThunk(
-    'appointments/fetchAppointmentsData',
-    async (user_id, { dispatch, rejectWithValue }) => {
-        try {
-            const response = await appointmentsAPICall(user_id);
-            const { appointments, terminals } = response.data;
-
-            // 1. Atualiza a outra slice (Terminals)
-            // Isso dispara a ação setTerminals definida no terminalsSlice
-            dispatch(setTerminals(terminals));
-
-            // 2. Retorna os agendamentos para atualizar esta slice (Appointments)
-            return appointments;
-
-        } catch (error) {
-            console.error('Erro no fetch:', error);
-            return rejectWithValue(error.message || 'Erro ao carregar dados');
-        }
-    }
-);
-
-// --- SLICE ---
 const initialState = {
     items: [],
     selectedAppointment: null,
@@ -51,19 +27,17 @@ const appointmentsSlice = createSlice({
             state.status = 'idle';
         }
     },
-    // Aqui tratamos o resultado do Thunk
     extraReducers: (builder) => {
         builder
-            .addCase(fetchAppointmentsData.pending, (state) => {
+            .addMatcher(api.endpoints.fetchAppointmentsData.matchPending, (state) => {
                 state.status = 'loading';
                 state.error = null;
             })
-            .addCase(fetchAppointmentsData.fulfilled, (state, action) => {
+            .addMatcher(api.endpoints.fetchAppointmentsData.matchFulfilled, (state, action) => {
                 state.status = 'succeeded';
-                // O payload aqui é APENAS o array de appointments que retornamos no thunk
-                state.items = action.payload;
+                state.items = action.payload.appointments;
             })
-            .addCase(fetchAppointmentsData.rejected, (state, action) => {
+            .addMatcher(api.endpoints.fetchAppointmentsData.matchRejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload || 'Erro desconhecido';
             });

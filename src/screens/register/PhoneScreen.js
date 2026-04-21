@@ -12,7 +12,7 @@ import { globalStyles } from "../../constants/styles";
 
 import { capitalize } from '../../utils/tools';
 
-import { sendPhoneValidationCodeRequest } from "../../store/slices/registerSlice";
+import { useSendPhoneValidationCodeRequestMutation } from "../../services/api";
 
 export default function PhoneScreen() {
     const navigation = useNavigation();
@@ -25,6 +25,8 @@ export default function PhoneScreen() {
     const [validPhone, setValidPhone] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const [sendPhoneValidationCode] = useSendPhoneValidationCodeRequestMutation();
 
     const maskPhone = (value) => {
         return value
@@ -44,7 +46,7 @@ export default function PhoneScreen() {
         setLoading(true);
 
         try {
-            await dispatch(sendPhoneValidationCodeRequest({ phone: phone })).unwrap();
+            await sendPhoneValidationCode({ phone: phone }).unwrap();
             
             // Simula delay ou navegação
             navigation.navigate('PhoneCode', { phone: phone });

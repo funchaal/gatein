@@ -7,19 +7,19 @@ import { useDispatch } from "react-redux";
 import { COLORS } from "../../constants/colors";
 import CodeInput from "../../components/register/CodeInput";
 import { globalStyles } from "../../constants/styles";
-import { checkPhoneValidationCodeRequest, sendPhoneValidationCodeRequest } from '../../store/slices/registerSlice';
+import { useCheckPhoneValidationCodeRequestMutation, useSendPhoneValidationCodeRequestMutation } from '../../services/api';
 import LoadingModal from "../../components/common/LoadingModal";
 
 // --- Componente do Modal de Loading (Baseado na sua referência) ---
 const ResendCodeButton = ({ phone }) => {
     const [timeLeft, setTimeLeft] = useState(30);
     const isDisabled = timeLeft > 0;
-    const dispatch = useDispatch();
+    const [sendPhoneValidationCode] = useSendPhoneValidationCodeRequestMutation();
 
     const handlePress = () => {
         if (!isDisabled) {
             setTimeLeft(30);
-            dispatch(sendPhoneValidationCodeRequest({ phone: phone }));
+            sendPhoneValidationCode({ phone: phone });
             console.log("Reenviando código...");
         }
     };
@@ -49,7 +49,7 @@ export default function PhoneCodeScreen() {
     const [loading, setLoading] = useState(false);
     const [isInvalidCode, setIsInvalidCode] = useState(false);
     
-    const dispatch = useDispatch();
+    const [checkPhoneValidationCode] = useCheckPhoneValidationCodeRequestMutation();
     const phone = route.params?.phone || "seu celular";
 
     const handleNext = async (code) => {
@@ -58,7 +58,7 @@ export default function PhoneCodeScreen() {
         setIsInvalidCode(false);
 
         try {
-            const result = await dispatch(checkPhoneValidationCodeRequest({ code })).unwrap(); 
+            const result = await checkPhoneValidationCode({ code }).unwrap(); 
             console.log("Código válido:", code, result);
             
             // On success, the thunk will update the state. Let's navigate.

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAppointmentsData, selectAllAppointments } from '../../store/slices/appointmentsSlice';
+import { selectAllAppointments } from '../../store/slices/appointmentsSlice';
 import { selectAllTerminals } from '../../store/slices/terminalsSlice';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { api } from '../../services/api';
 
 const StateGate = ({ children }) => {
   const dispatch = useDispatch();
@@ -17,7 +18,7 @@ const StateGate = ({ children }) => {
       if (appointments.length > 0 && terminals.length === 0) {
         setIsSyncing(true);
         try {
-          await dispatch(fetchAppointmentsData()).unwrap();
+          await dispatch(api.endpoints.fetchAppointmentsData.initiate()).unwrap();
         } catch (error) {
           console.error("Failed to sync data on startup:", error);
           // Opcional: Tratar o erro, talvez limpando o estado.

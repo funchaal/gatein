@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { StyleSheet, View, Text, SectionList, SafeAreaView, Platform, StatusBar } from "react-native";
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchAppointmentsData, selectAllAppointments } from '../store/slices/appointmentsSlice';
+import { selectAllAppointments } from '../store/slices/appointmentsSlice';
 import { selectAllTerminals } from '../store/slices/terminalsSlice'; // Importar seletor de terminais
 import AppointmentCard from "../components/appointments/AppointmentCard"; // Reutilizando
+import { api } from '../services/api';
 
 export default function AppointmentsScreen() {
   const dispatch = useDispatch();
@@ -14,7 +15,7 @@ export default function AppointmentsScreen() {
     // Se temos agendamentos, mas não temos terminais (inconsistência de estado)
     if (appointments.length > 0 && terminals.length === 0) {
       // Dispara a busca de dados para garantir que tudo seja carregado
-      dispatch(fetchAppointmentsData());
+      dispatch(api.endpoints.fetchAppointmentsData.initiate());
     }
   }, [appointments, terminals, dispatch]);
 

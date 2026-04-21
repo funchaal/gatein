@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { globalStyles } from '../../constants/styles';
 import { handleRegistrationStep } from '../../utils/tools';
-import { deleteRegistrationRequest } from '../../store/slices/registerSlice';
+import { useDeleteRegistrationRequestMutation } from '../../services/api';
 
 // Helper function to mask parts of the name
 const maskName = (name) => {
@@ -21,6 +21,7 @@ const maskName = (name) => {
 const InProgressConfirmationScreen = ({ navigation, route }) => {
   const { tax_id, name, register_step } = route.params || {};
   const dispatch = useDispatch();
+  const [deleteRegistration] = useDeleteRegistrationRequestMutation();
 
   const handleContinue = () => {
     handleRegistrationStep(navigation, register_step, { tax_id });
@@ -28,7 +29,7 @@ const InProgressConfirmationScreen = ({ navigation, route }) => {
 
   const handleStartOver = async () => {
     try {
-        await dispatch(deleteRegistrationRequest({ tax_id })).unwrap();
+        await deleteRegistration({ tax_id }).unwrap();
         navigation.navigate('TaxId');
     } catch (error) {
         console.error('Failed to delete registration:', error);

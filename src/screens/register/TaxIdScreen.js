@@ -6,8 +6,7 @@ import { handleRegistrationStep } from "../../utils/tools";
 import { maskCPF } from '../../utils/masks';
 import Input from "../../components/common/Input";
 import { COLORS } from "../../constants/colors";
-import { useDispatch } from "react-redux";
-import { registerTaxIdRequest } from "../../store/slices/registerSlice";
+import { useRegisterTaxIdRequestMutation } from "../../services/api";
 import { isValidCPF } from '../../utils/validators';
 import { globalStyles } from "../../constants/styles";
 
@@ -19,7 +18,7 @@ export default function TaxIdScreen({ navigation }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const dispatch = useDispatch();
+    const [registerTaxId] = useRegisterTaxIdRequestMutation();
 
     useEffect(() => {
         setError(''); 
@@ -34,7 +33,7 @@ export default function TaxIdScreen({ navigation }) {
         
         setValidTaxId(is_valid);
 
-        if (validTaxId) Keyboard.dismiss();
+        if (is_valid) Keyboard.dismiss();
 
         const timeoutId = setTimeout(() => {
             if (!is_valid) setError('CPF inválido.')
@@ -48,7 +47,7 @@ export default function TaxIdScreen({ navigation }) {
         setLoading(true);
         try {
             const cleanTaxId = taxId.replace(/\D/g, ''); 
-            const result = await dispatch(registerTaxIdRequest({ tax_id: cleanTaxId })).unwrap();
+            const result = await registerTaxId({ tax_id: cleanTaxId }).unwrap();
 
             if (result.user.register_step === 'registered') {
                 // User already has an account, redirect to login screen's password step

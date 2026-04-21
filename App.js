@@ -14,7 +14,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import AppointmentDetailsModal from './src/components/appointments/AppointmentDetailsModal';
 import ChatModal from './src/components/chat/ChatModal';
 import { closeChatModal } from './src/store/slices/chatSlice';
-import { restoreSession } from './src/store/slices/authSlice'; // ✅ MUDANÇA AQUI
+import { api } from './src/services/api';
 
 import StateGate from './src/components/common/StateGate';
 
@@ -25,7 +25,7 @@ function AppContent() {
   
   // ✅ Executar restoreSession ao iniciar o app (Splash Screen)
   useEffect(() => {
-    dispatch(restoreSession());
+    dispatch(api.endpoints.restoreSession.initiate());
   }, [dispatch]);
 
   // ✅ Esconder Splash Screen quando terminar de carregar

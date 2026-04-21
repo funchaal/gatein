@@ -1,43 +1,5 @@
-// store/slices/documentSlice.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { uploadDocument, validateDocument, getDocument } from '../../services/mockData';
-
-// AsyncThunks
-export const uploadDocumentAsync = createAsyncThunk(
-  'document/upload',
-  async (documentData, { rejectWithValue }) => {
-    try {
-      const response = await uploadDocument(documentData);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const validateDocumentAsync = createAsyncThunk(
-  'document/validate',
-  async (documentId, { rejectWithValue }) => {
-    try {
-      const response = await validateDocument(documentId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const getDocumentAsync = createAsyncThunk(
-  'document/get',
-  async (documentId, { rejectWithValue }) => {
-    try {
-      const response = await getDocument(documentId);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+import { createSlice } from '@reduxjs/toolkit';
+import { api } from '../../services/api';
 
 const initialState = {
   currentDocument: null,
@@ -68,48 +30,48 @@ const documentSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Upload Document
-      .addCase(uploadDocumentAsync.pending, (state) => {
+      .addMatcher(api.endpoints.uploadDocumentAsync.matchPending, (state) => {
         state.uploadStatus = 'loading';
         state.error = null;
         state.uploadProgress = 0;
       })
-      .addCase(uploadDocumentAsync.fulfilled, (state, action) => {
+      .addMatcher(api.endpoints.uploadDocumentAsync.matchFulfilled, (state, action) => {
         state.uploadStatus = 'succeeded';
         state.currentDocument = action.payload;
         state.uploadProgress = 100;
         state.error = null;
       })
-      .addCase(uploadDocumentAsync.rejected, (state, action) => {
+      .addMatcher(api.endpoints.uploadDocumentAsync.matchRejected, (state, action) => {
         state.uploadStatus = 'failed';
         state.error = action.payload || 'Erro ao fazer upload do documento';
         state.uploadProgress = 0;
       })
       
       // Validate Document
-      .addCase(validateDocumentAsync.pending, (state) => {
+      .addMatcher(api.endpoints.validateDocumentAsync.matchPending, (state) => {
         state.validationStatus = 'loading';
       })
-      .addCase(validateDocumentAsync.fulfilled, (state, action) => {
+      .addMatcher(api.endpoints.validateDocumentAsync.matchFulfilled, (state, action) => {
         state.validationStatus = 'succeeded';
         if (state.currentDocument) {
           state.currentDocument.status = action.payload.status;
           state.currentDocument.validatedAt = action.payload.validatedAt;
         }
       })
-      .addCase(validateDocumentAsync.rejected, (state, action) => {
+      .addMatcher(api.endpoints.validateDocumentAsync.matchRejected, (state, action) => {
         state.validationStatus = 'failed';
         state.error = action.payload || 'Erro ao validar documento';
       })
       
       // Get Document
-      .addCase(getDocumentAsync.pending, (state) => {
+      .addMatcher(api.endpoints.getDocumentAsync.matchPending, (state) => {
         state.uploadStatus = 'loading';
       })
-      .addCase(getDocumentAsync.fulfilled, (state, action) => {
+      .addMatcher(api.endpoints.getDocumentAsync.matchFulfilled, (state, action) => {
         state.uploadStatus = 'succeeded';
         state.currentDocument = action.payload;
       })
-      .addCase(getDocumentAsync.rejected, (state, action) => {
+      .addMatcher(api.endpoints.getDocumentAsync.matchRejected, (state, action) => {
         state.uploadStatus = 'failed';
         state.error = action.payload || 'Erro ao buscar documento';
       });

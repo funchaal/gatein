@@ -21,7 +21,8 @@ import MainAsyncButton from '../components/common/MainAsyncButton';
 import SecondaryButton from '../components/common/SecondaryButton';
 
 // Store & Utils
-import { loginRequest, clearError } from '../store/slices/authSlice';
+import { clearError } from '../store/slices/authSlice';
+import { useLoginMutation } from '../services/api';
 import { isValidCPF } from '../utils/validators';
 import { maskCPF } from '../utils/masks';
 import { COLORS } from '../constants/colors';
@@ -33,6 +34,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function LoginScreen({ navigation, route }) {
     const dispatch = useDispatch();
     const { savedTaxId, error: authError } = useSelector((state) => state.auth);
+    const [loginMutation] = useLoginMutation();
 
     // Prioriza: route params > savedTaxId do Keychain
     const initialCpf = route?.params?.tax_id || savedTaxId || '';
@@ -85,14 +87,14 @@ export default function LoginScreen({ navigation, route }) {
             setCpf(maskCPF(savedTaxId));
             setStep('password');
         }
-    }, [savedTaxId]);
+    }, [savedTaxId, cpf]);
 
     // Tratar erro de dispositivo não validado
     useEffect(() => {
         if (authError?.data?.error?.code === 'DEVICE_NOT_VALIDATED') {
             Alert.alert(
                 'Dispositivo não autorizado',
-                authError.data.error.message || 'Este dispositivo não está autorizado. Entre em contato com o suporte.',
+                authError?.data?.error?.message || 'Este dispositivo não está autorizado. Entre em contato com o suporte.',
                 [
                     {
                         text: 'OK',
@@ -130,7 +132,7 @@ export default function LoginScreen({ navigation, route }) {
                 const login_payload = { tax_id: cleanTaxId, password };
                 
                 // Dispatch login - credenciais serão salvas automaticamente no Keychain
-                await dispatch(loginRequest(login_payload)).unwrap();
+                await loginMutation(login_payload).unwrap();
                 
                 // Se chegou aqui, login foi bem-sucedido
                 // O AppNavigator vai redirecionar automaticamente
@@ -154,7 +156,7 @@ export default function LoginScreen({ navigation, route }) {
                 }
                 else if (status === 401 && data?.error?.code === 'PASSWORD_INVALID') {
                     // Senha incorreta
-                    setPasswordError(data.error.message || 'Senha incorreta');
+                    setPasswordError(data?.error?.message || 'Senha incorreta');
                 }
                 else if (error?.code === 'DEVICE_ID_ERROR') {
                     // Erro ao obter device ID
@@ -236,7 +238,7 @@ export default function LoginScreen({ navigation, route }) {
                     {renderUserBadge()}
 
                     {route?.params?.message && (
-                        <Text style={styles.infoMessage}>{route.params.message}</Text>
+                        <Text style={styles.infoMessage}>{route?.params?.message}</Text>
                     )}
 
                     <Input 

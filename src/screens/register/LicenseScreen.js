@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -16,15 +16,14 @@ import * as DocumentPicker from '@react-native-documents/picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import { COLORS } from '../../constants/colors';
-import { 
-  uploadDocumentAsync, 
-  selectUploadStatus, 
+import { useUploadDocumentAsyncMutation } from '../../services/api';
+import {
+  selectUploadStatus,
   selectDocumentError,
   selectCurrentDocument,
   resetDocumentState,
   selectUploadProgress
 } from '../../store/slices/documentSlice';
-
 const LicenseScreen = ({ route }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -36,12 +35,25 @@ const LicenseScreen = ({ route }) => {
   const currentDocument = useSelector(selectCurrentDocument);
   const uploadProgress = useSelector(selectUploadProgress);
 
+  const [uploadDocumentAsync] = useUploadDocumentAsyncMutation();
+
   const uploading = uploadStatus === 'loading';
 
   // Limpa estado ao montar a tela
   useEffect(() => {
     dispatch(resetDocumentState());
   }, [dispatch]);
+
+  const handleProceed = useCallback(() => {
+    if (uploadStatus !== 'succeeded') {
+      Alert.alert(
+        'Documento Necessário',
+        'Por favor, anexe ou tire foto do seu documento antes de avançar'
+      );
+      return;
+    }
+    navigation.navigate('FacialRecognition');
+  }, [uploadStatus, navigation]);
 
   // Observa resultado do upload
   useEffect(() => {
@@ -60,7 +72,7 @@ const LicenseScreen = ({ route }) => {
         [{ text: 'Tentar Novamente', onPress: () => dispatch(resetDocumentState()) }]
       );
     }
-  }, [uploadStatus, currentDocument, uploadError]);
+  }, [uploadStatus, currentDocument, uploadError, dispatch, handleProceed]);
 
   // Selecionar documento do dispositivo
   const handleSelectDocument = async () => {
@@ -137,7 +149,7 @@ const LicenseScreen = ({ route }) => {
       type: doc.type,
     }));
   }
-}, [route?.params?.documentPhoto]);
+}, [route?.params?.documentPhoto, dispatch, uploadDocumentAsync]);
 
   // Tirar foto do documento
   const handleTakePhoto = async () => {
@@ -158,17 +170,6 @@ const LicenseScreen = ({ route }) => {
       console.error('Erro ao abrir câmera:', error);
       Alert.alert('Erro', 'Não foi possível abrir a câmera');
     }
-  };
-
-  const handleProceed = () => {
-    if (uploadStatus !== 'succeeded') {
-      Alert.alert(
-        'Documento Necessário',
-        'Por favor, anexe ou tire foto do seu documento antes de avançar'
-      );
-      return;
-    }
-    navigation.navigate('FacialRecognition');
   };
 
   return (

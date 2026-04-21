@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { api } from '../../services/api';
 
 const initialState = {
   items: [],
@@ -18,6 +19,11 @@ const terminalsSlice = createSlice({
         state.items = action.payload;
     }
   },
+  extraReducers: (builder) => {
+    builder.addMatcher(api.endpoints.fetchAppointmentsData.matchFulfilled, (state, action) => {
+      state.items = action.payload.terminals;
+    });
+  }
 });
 
 export const { selectTerminal, setTerminals } = terminalsSlice.actions;

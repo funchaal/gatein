@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { clearActiveChannel, selectActiveChannelInfo, fetchChatData } from '../../store/slices/chatSlice';
+import { clearActiveChannel, selectActiveChannelInfo } from '../../store/slices/chatSlice';
+import { api } from '../../services/api';
 
 import ChatList from './ChatList';
 import ChatRoom from './ChatRoom';
@@ -34,9 +35,27 @@ export default function ChatModal({ visible, onClose }) {
     // Se ainda não carregou ou está ocioso, busca os dados
     if (status === 'idle') {
         // Passe o ID do usuário real aqui se tiver, ou string fixa para teste
-        dispatch(fetchChatData('driver_me')); 
+        dispatch(api.endpoints.fetchChatData.initiate('driver_me')); 
     }
   }, [status, dispatch]);
+
+  const handleCloseAnimation = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(pan, {
+        toValue: MODAL_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backgroundOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsModalVisible(false);
+      onClose();
+    });
+  }, [pan, backgroundOpacity, onClose]);
 
   useEffect(() => {
     if (visible) {
@@ -57,25 +76,7 @@ export default function ChatModal({ visible, onClose }) {
     } else {
       handleCloseAnimation();
     }
-  }, [visible]);
-
-  const handleCloseAnimation = () => {
-    Animated.parallel([
-      Animated.timing(pan, {
-        toValue: MODAL_HEIGHT,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backgroundOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setIsModalVisible(false);
-      onClose();
-    });
-  };
+  }, [visible, pan, backgroundOpacity, handleCloseAnimation]);
 
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: pan } }],

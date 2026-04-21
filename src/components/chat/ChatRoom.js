@@ -7,8 +7,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {
   selectActiveChannelMessages,
   selectActiveChannelInfo,
-  sendMessageToServer, 
 } from '../../store/slices/chatSlice';
+import { useSendMessageToServerMutation } from '../../services/api';
 
 export default function ChatRoom({ onBack }) {
   // Esse hook retorna { top, bottom, left, right }
@@ -18,10 +18,11 @@ export default function ChatRoom({ onBack }) {
   const channelInfo = useSelector(selectActiveChannelInfo);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);
+  const [sendMessageToServer] = useSendMessageToServerMutation();
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    dispatch(sendMessageToServer({ text: inputText }));
+    sendMessageToServer({ text: inputText });
     setInputText('');
   };
 

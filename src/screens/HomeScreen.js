@@ -10,9 +10,8 @@ import QuickActions from "../components/home/QuickActions";
 import GreetingSection from "../components/home/GreetingSection";
 import AppointmentList from "../components/appointments/AppointmentsList";
 
-import { fetchAppointmentsData, selectAppointmentsStatus } from '../store/slices/appointmentsSlice';
-
-// Constantes
+import { selectAppointmentsStatus } from '../store/slices/appointmentsSlice';
+import { api } from '../services/api';
 import { COLORS } from '../constants/colors';
 
 // Componente Interno da Home
@@ -25,7 +24,7 @@ function HomeContent() {
     useEffect(() => {
         // Dispara a busca (pode passar o ID do usuário logado)
         if (status === 'idle') {
-            dispatch(fetchAppointmentsData('user_123'));
+            dispatch(api.endpoints.fetchAppointmentsData.initiate('user_123'));
         }
     }, [dispatch, status]);
 

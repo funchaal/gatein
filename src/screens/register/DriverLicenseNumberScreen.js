@@ -6,7 +6,7 @@ import uuid from 'react-native-uuid';
 import Input from "../../components/common/Input";
 import { COLORS } from "../../constants/colors";
 import { useDispatch } from "react-redux";
-import { validateDriverLicenseRequest } from "../../store/slices/registerSlice";
+import { useValidateDriverLicenseRequestMutation } from "../../services/api";
 import { globalStyles } from "../../constants/styles";
 import MainAsyncButton from "../../components/common/MainAsyncButton";
 import LoadingModal from "../../components/common/LoadingModal";
@@ -19,16 +19,17 @@ export default function DriverLicenseNumberScreen({ route }) {
     const [loading, setLoading] = useState(false);
 
     const dispatch = useDispatch();
+    const [validateDriverLicense] = useValidateDriverLicenseRequestMutation();
 
     const handleNext = async () => {
         setLoading(true);
         setError('');
         try {
             const deviceId = uuid.v4();
-            await dispatch(validateDriverLicenseRequest({ 
+            await validateDriverLicense({ 
                 driver_license: driverLicense,
                 device: deviceId 
-            })).unwrap();
+            }).unwrap();
 
             // On success, navigate to Password screen
             navigation.reset({

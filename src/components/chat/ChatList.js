@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, Image } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectAllChannels, openChannel, fetchChatData } from '../../store/slices/chatSlice';
+import { selectAllChannels, openChannel } from '../../store/slices/chatSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ChatEmptyState from './ChatEmptyState';
 
