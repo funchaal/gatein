@@ -10,6 +10,7 @@ import appointmentsReducer from './slices/appointmentsSlice';
 import terminalsReducer from './slices/terminalsSlice';
 import documentReducer from './slices/documentSlice';
 import registerReducer from './slices/registerSlice';
+import locationSlice from './slices/locationSlice';
 
 const rootReducer = combineReducers({
   [api.reducerPath]: api.reducer,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   terminals: terminalsReducer,
   document: documentReducer,
   register: registerReducer,
+  location: locationSlice
 });
 
 // Configuração do Redux Persist

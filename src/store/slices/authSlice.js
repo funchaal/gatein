@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { secureStorage } from '../../services/secureStorage';
 import { api } from '../../services/api';
 
@@ -6,10 +6,10 @@ const initialState = {
   token: null,
   isAuthenticated: false,
   isOffline: false,
-  isLoading: false,        // Spinner de login
-  isAppLoading: true,      // Splash Screen
+  isLoading: false,
+  isAppLoading: true,
   error: null,
-  savedTaxId: null,        // CPF salvo para preencher login
+  savedTaxId: null,
   isDeviceValidated: false,
   user: {
     id: null,
@@ -25,10 +25,6 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    /**
-     * Logout completo
-     * Limpa Keychain e reseta estado
-     */
     logout: (state) => {
       state.token = null;
       state.user = initialState.user;
@@ -37,16 +33,11 @@ const authSlice = createSlice({
       state.error = null;
       state.isDeviceValidated = false;
       
-      // Limpar Keychain
       secureStorage.clearAll().catch(err => 
         console.error('Error clearing Keychain on logout:', err)
       );
     },
 
-    /**
-     * Logout mantendo tax_id
-     * Útil para trocar de conta
-     */
     logoutKeepTaxId: (state) => {
       state.token = null;
       state.user = initialState.user;
@@ -55,7 +46,6 @@ const authSlice = createSlice({
       state.error = null;
       state.isDeviceValidated = false;
       
-      // Limpar apenas o token
       secureStorage.clearToken().catch(err => 
         console.error('Error clearing token on logout:', err)
       );
@@ -80,33 +70,43 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // --- LOGIN REQUEST ---
-      .addMatcher(api.endpoints.login.matchPending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addMatcher(api.endpoints.login.matchFulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.isOffline = false;
-        state.savedTaxId = action.payload.user.tax_id;
-        state.isDeviceValidated = true; // Dispositivo foi validado no login
-      })
-      .addMatcher(api.endpoints.login.matchRejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-        
-        // Se erro for DEVICE_NOT_VALIDATED
-        if (action.payload?.data?.error?.code === 'DEVICE_NOT_VALIDATED') {
-          state.isDeviceValidated = false;
+      // --- LOGIN E REGISTRO (Ambos logam o usuário) ---
+      .addMatcher(
+        isAnyOf(api.endpoints.login.matchPending, api.endpoints.registerFinalizeRequest.matchPending), 
+        (state) => {
+          state.isLoading = true;
+          state.error = null;
         }
-      })
+      )
+      .addMatcher(
+        isAnyOf(api.endpoints.login.matchFulfilled, api.endpoints.registerFinalizeRequest.matchFulfilled), 
+        (state, action) => {
+          state.isLoading = false;
+          state.isAuthenticated = true;
+          state.token = action.payload.token;
+          state.user = action.payload.user;
+          state.isOffline = false;
+          state.savedTaxId = action.payload.user.tax_id;
+          state.isDeviceValidated = true; 
+        }
+      )
+      .addMatcher(
+        isAnyOf(api.endpoints.login.matchRejected, api.endpoints.registerFinalizeRequest.matchRejected), 
+        (state, action) => {
+          state.isLoading = false;
+          state.error = action.payload;
+          
+          // FastAPI usa 'detail' para as mensagens do HTTPException
+          const errorCode = action.payload?.data?.detail?.code || action.payload?.data?.error?.code;
+          
+          if (errorCode === 'DEVICE_NOT_VALIDATED') {
+            state.isDeviceValidated = false;
+          }
+        }
+      )
 
       // --- RESTORE SESSION (Splash Screen) ---
       .addMatcher(api.endpoints.restoreSession.matchPending, (state) => {
-        console.log('restoreSession.pending')
         state.isAppLoading = true;
         state.error = null;
       })
@@ -116,13 +116,10 @@ const authSlice = createSlice({
         state.isOffline = action.payload.isOffline;
         state.token = action.payload.token;
 
-        console.log('deu bom aqui')        
-        // Atualiza dados do usuário se retornaram da API
         if (action.payload.user) {
           state.user = action.payload.user;
         }
         
-        // Salva tax_id se disponível
         if (action.payload.savedTaxId) {
           state.savedTaxId = action.payload.savedTaxId;
         }
@@ -132,15 +129,12 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         
-        console.log('deu erro aqui')
-
-        // Se houver um tax_id salvo, mantém para preencher o login
         if (action.payload?.data?.savedTaxId) {
           state.savedTaxId = action.payload.data.savedTaxId;
         }
         
-        // Salva erro se houver
-        if (action.payload?.data?.error?.message || action.payload?.error?.message) {
+        // Verifica tanto detail (FastAPI) quanto error 
+        if (action.payload?.data?.detail || action.payload?.data?.error || action.payload?.error) {
           state.error = action.payload;
         }
       });

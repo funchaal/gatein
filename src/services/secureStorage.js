@@ -49,17 +49,39 @@ export const secureStorage = {
   /**
    * Recuperar apenas o token
    */
-  async getToken() {
-    try {
-      const credentials = await Keychain.getGenericPassword({
-        service: SERVICE_NAME,
-      });
-      return credentials ? credentials.password : null;
-    } catch (error) {
-      console.error('Error getting token from Keychain:', error);
-      return null;
+async getToken() {
+  try {
+    const credentials = await Keychain.getGenericPassword({ service: SERVICE_NAME });
+    // Se o token for o nosso marcador de vazio, retorna null
+    if (credentials && credentials.password !== 'EMPTY_TOKEN') {
+      return credentials.password;
     }
-  },
+    return null;
+  } catch (error) {
+    return null;
+  }
+},
+
+/**
+ * Limpar apenas o token (mantém tax_id)
+ * Para isso, salvamos novamente com token vazio
+ */
+async clearToken() {
+  try {
+    const taxId = await this.getTaxId();
+    if (taxId) {
+      // Em vez de '', usamos 'EMPTY_TOKEN' para evitar o erro
+      await Keychain.setGenericPassword(taxId, 'EMPTY_TOKEN', {
+        service: SERVICE_NAME,
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
+      });
+    }
+    return true;
+  } catch (error) {
+    console.error('Error clearing token:', error);
+    return false;
+  }
+},
 
   /**
    * Recuperar apenas o tax_id
@@ -73,30 +95,6 @@ export const secureStorage = {
     } catch (error) {
       console.error('Error getting tax_id from Keychain:', error);
       return null;
-    }
-  },
-
-  /**
-   * Limpar apenas o token (mantém tax_id)
-   * Para isso, salvamos novamente com token vazio
-   */
-  async clearToken() {
-    try {
-      const taxId = await this.getTaxId();
-      if (taxId) {
-        await Keychain.setGenericPassword(
-          taxId,
-          '', // token vazio
-          {
-            service: SERVICE_NAME,
-            accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-          }
-        );
-      }
-      return true;
-    } catch (error) {
-      console.error('Error clearing token from Keychain:', error);
-      return false;
     }
   },
 

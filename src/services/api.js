@@ -3,14 +3,8 @@ import { secureStorage } from './secureStorage';
 import { getDeviceId } from './deviceInfo';
 import uuid from 'react-native-uuid';
 import {
-  mockLogin,
-  mockRestoreSession,
   appointmentsAPICall,
   chatsAPICall,
-  registerTaxId,
-  sendPhoneValidationCode,
-  checkPhoneValidationCode,
-  validateDriverLicense,
   deleteRegistration,
   uploadDocument,
   validateDocument,
@@ -20,11 +14,17 @@ import {
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://api.example.com/v1', // Replace with real base URL
+    baseUrl: 'http://10.0.2.2:8000/api/v1/mobile',
     prepareHeaders: async (headers) => {
       const token = await secureStorage.getToken();
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
+      }
+
+      // 2. Injeta o Device ID
+      const deviceId = await getDeviceId();
+      if (deviceId) {
+        headers.set('X-Device-ID', deviceId); // O nome tem que bater com o alias do FastAPI
       }
       return headers;
     },
@@ -33,15 +33,18 @@ export const api = createApi({
   endpoints: (builder) => ({
     // --- AUTH ---
     login: builder.mutation({
-      queryFn: async ({ tax_id, password }) => {
-        try {
-          const device = await getDeviceId();
-          if (!device) throw { response: { status: 500, data: { error: { code: 'DEVICE_ID_ERROR' } } } };
-          const response = await mockLogin(tax_id, password, device);
-          return { data: response.data.data };
-        } catch (error) {
-          return { error: { status: error.response?.status, data: error.response?.data } };
-        }
+      queryFn: async ({ tax_id, password }, _api, _extraOptions, fetchWithBQ) => {
+        const device = await getDeviceId();
+        if (!device) return { error: { status: 500, data: { error: { code: 'DEVICE_ID_ERROR' } } } };
+
+        const response = await fetchWithBQ({
+          url: '/auth/login',
+          method: 'POST',
+          body: { tax_id, password, device }
+        });
+
+        if (response.error) return { error: response.error };
+        return { data: response.data.data };
       },
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
@@ -50,34 +53,51 @@ export const api = createApi({
         } catch (err) {}
       }
     }),
+    
     restoreSession: builder.mutation({
-      queryFn: async () => {
-        try {
-          const token = await secureStorage.getToken();
-          if (!token) {
-            return { error: { status: 401, data: { error: { code: 'NO_TOKEN_FOUND', message: 'Token não encontrado' }, success: false } } };
-          }
-          const device = await getDeviceId();
-          if (!device) throw { response: { status: 500, data: { error: { code: 'DEVICE_ID_ERROR' } } } };
-          const response = await mockRestoreSession(token, device);
-          return { data: { user: response.data.data.user, token, isOffline: false } };
-        } catch (error) {
-          if (error.response?.status === 401) {
-            await secureStorage.clearToken();
-            const savedTaxId = await secureStorage.getTaxId();
-            return { error: { status: 401, data: { error: error.response?.data?.error, savedTaxId } } };
-          }
-          const token = await secureStorage.getToken();
-          const savedTaxId = await secureStorage.getTaxId();
-          return { data: { user: null, token, isOffline: true, savedTaxId } };
+      queryFn: async (_, _api, _extraOptions, fetchWithBQ) => {
+        const token = await secureStorage.getToken();
+        const savedTaxId = await secureStorage.getTaxId();
+
+        if (!token) {
+          return { error: { status: 401, data: { error: { code: 'NO_TOKEN_FOUND', message: 'Token não encontrado' } } } };
         }
+
+        const response = await fetchWithBQ({
+          url: '/auth/session/restore', // ou '/auth/session/restore' dependendo da sua URL base
+          method: 'POST'
+        });
+
+        if (response.error) {
+          // Se for erro de internet (backend fora do ar ou sem wifi)
+          if (response.error.status === 'FETCH_ERROR') {
+            return { data: { user: null, token, isOffline: true, savedTaxId } };
+          }
+          
+          // Qualquer outro erro HTTP (401, 422, 500...), recusa a sessão
+          await secureStorage.clearToken();
+          return { error: { status: response.error.status, data: response.error.data, savedTaxId } };
+        }
+
+        return { data: { user: response.data.data.user, token, isOffline: false } };
       }
+    }),
+
+    // --- CHECKIN ---
+    checkinRequest: builder.mutation({
+      query: (terminalId) => ({
+        url: `/checkin/${terminalId}`,
+        method: 'POST',
+        timeout: process.env.CHECKIN_TIMEOUT ? parseInt(process.env.CHECKIN_TIMEOUT, 10) : 30000,
+      }),
+      invalidatesTags: ['Appointments'],
     }),
 
     // --- APPOINTMENTS ---
     fetchAppointmentsData: builder.query({
       queryFn: async (user_id) => {
         try {
+          console.log('Fetching appointments data...');
           const response = await appointmentsAPICall(user_id);
           return { data: response.data };
         } catch (error) {
@@ -113,49 +133,69 @@ export const api = createApi({
 
     // --- REGISTER ---
     registerTaxIdRequest: builder.mutation({
-      queryFn: async ({ tax_id }) => {
-        try {
-          const response = await registerTaxId(tax_id);
-          return { data: response.data };
-        } catch (error) {
-          return { error };
-        }
-      },
+      query: ({ tax_id }) => ({
+        url: '/check-status',
+        method: 'POST',
+        body: { tax_id }
+      }),
       invalidatesTags: ['Register']
     }),
+    
     sendPhoneValidationCodeRequest: builder.mutation({
-      queryFn: async ({ tax_id, name, phone }) => {
-        try {
-          const response = await sendPhoneValidationCode(tax_id, name, phone);
-          return { data: response.data };
-        } catch (error) {
-          return { error };
-        }
-      },
+      query: ({ tax_id, name, phone }) => ({
+        url: '/auth/otp/send',
+        method: 'POST',
+        body: { tax_id, name, phone }
+      }),
       invalidatesTags: ['Register']
     }),
+    
     checkPhoneValidationCodeRequest: builder.mutation({
-      queryFn: async ({ tax_id, name, phone, code }) => {
-        try {
-          const response = await checkPhoneValidationCode(tax_id, name, phone, code);
-          return { data: response.data };
-        } catch (error) {
-          return { error };
-        }
-      },
+      query: ({ tax_id, name, phone, code }) => ({
+        url: '/auth/otp/verify',
+        method: 'POST',
+        body: { tax_id, name, phone, code }
+      }),
       invalidatesTags: ['Register']
     }),
+    
     validateDriverLicenseRequest: builder.mutation({
-      queryFn: async ({ tax_id, driver_license, device }) => {
-        try {
-          await validateDriverLicense(tax_id, driver_license, device);
-          return { data: { driver_license } };
-        } catch (error) {
-          return { error };
-        }
+      queryFn: async ({ tax_id, driver_license, device, from_login }, _api, _extraOptions, fetchWithBQ) => {
+        const actualDevice = device || await getDeviceId();
+        const response = await fetchWithBQ({
+          url: '/auth/driver-license/validate',
+          method: 'POST',
+          body: { tax_id, driver_license, device: actualDevice, from_login: from_login || false }
+        });
+        
+        if (response.error) return { error: response.error };
+        return { data: { driver_license } };
       },
       invalidatesTags: ['Register']
     }),
+
+    // Endpoint mapeado do backend para finalizar o registro com a senha
+    registerFinalizeRequest: builder.mutation({
+      queryFn: async ({ tax_id, password }, _api, _extraOptions, fetchWithBQ) => {
+        const device = await getDeviceId();
+        const response = await fetchWithBQ({
+          url: '/auth/register',
+          method: 'POST',
+          body: { tax_id, password, device }
+        });
+        
+        if (response.error) return { error: response.error };
+        return { data: response.data.data };
+      },
+      async onQueryStarted(arg, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          await secureStorage.saveCredentials(data.token, data.user.tax_id);
+        } catch (err) {}
+      },
+      invalidatesTags: ['Register', 'Auth']
+    }),
+
     deleteRegistrationRequest: builder.mutation({
       queryFn: async ({ tax_id }) => {
         try {
@@ -208,6 +248,7 @@ export const api = createApi({
 export const {
   useLoginMutation,
   useRestoreSessionMutation,
+  useCheckinRequestMutation,
   useFetchAppointmentsDataQuery,
   useLazyFetchAppointmentsDataQuery,
   useFetchChatDataQuery,
@@ -217,6 +258,7 @@ export const {
   useSendPhoneValidationCodeRequestMutation,
   useCheckPhoneValidationCodeRequestMutation,
   useValidateDriverLicenseRequestMutation,
+  useRegisterFinalizeRequestMutation,
   useDeleteRegistrationRequestMutation,
   useUploadDocumentAsyncMutation,
   useValidateDocumentAsyncMutation,
