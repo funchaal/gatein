@@ -64,12 +64,12 @@ export default function MapScreen() {
     // --- HANDLERS ---
     const handleWebViewMessage = (event) => {
         const data = event.nativeEvent.data;
-        console.log('Message received:', data);
+        // console.log('Message received:', data);
         
         const parsedMessage = parseWebViewMessage(data);
         
         if (parsedMessage?.type === 'USER_DRAGGED_MAP') {
-            console.log('Setting isFollowingUser to false');
+            // console.log('Setting isFollowingUser to false');
             setIsFollowingUser(false);
         } else if (parsedMessage) {
             if (parsedMessage.type === 'ROUTE_INFO') {
@@ -77,7 +77,7 @@ export default function MapScreen() {
             } else if (parsedMessage.type === 'ROUTE_CLEARED') {
                 setRouteInfo(null);
             } else if (parsedMessage.type === 'ROUTE_SWITCHED') {
-                console.log('Route switched to index:', parsedMessage.activeIndex);
+                // console.log('Route switched to index:', parsedMessage.activeIndex);
             }
         }
     };

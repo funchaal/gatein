@@ -1,20 +1,21 @@
 export const getStatusColor = (status) => {
-    switch (status) {
-        case 'Agendado':
+    const safeStatus = (status || '').toString().toUpperCase();
+    switch (safeStatus) {
+        case 'AGENDADO':
         case 'SCHEDULED':
             return '#3B82F6'; // Blue
-        case 'Em Andamento':
+        case 'EM ANDAMENTO':
         case 'IN_PROGRESS':
-        case 'No Pátio':
+        case 'NO PÁTIO':
         case 'CHECKED_IN':
             return '#EAB308'; // Yellow/Orange
-        case 'Concluído':
+        case 'CONCLUÍDO':
         case 'COMPLETED':
-        case 'Finalizado':
+        case 'FINALIZADO':
             return '#10B981'; // Emerald
-        case 'Expirado':
+        case 'EXPIRADO':
         case 'EXPIRED':
-        case 'Atrasado':
+        case 'ATRASADO':
             return '#EF4444'; // Red
         default:
             return '#64748B'; // Slate

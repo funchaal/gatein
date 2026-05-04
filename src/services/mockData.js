@@ -1,5 +1,6 @@
 export const appointmentsAPICall = async (userId) => {
     return new Promise((resolve) => {
+        // console.log('Requisição para API de Appointments')
         setTimeout(() => {
             resolve({
                 data: {
@@ -11,7 +12,7 @@ export const appointmentsAPICall = async (userId) => {
                             longitude: -46.31284453534403,
                             address: 'Av. Eng. Fábio Roberto Barnabé, 1500',
                             geofenceRadius: 1000,
-                            appointmentsConfig: [
+                            appointments_layouts: [
                                 {
                                     id: 101,
                                     operation_type: 'CONTAINER_IMPORT',
@@ -20,42 +21,42 @@ export const appointmentsAPICall = async (userId) => {
                                     card_layout: {
                                         header: { 
                                             label: 'Container', 
-                                            key: 'unit_id' 
+                                            field: 'unit_id' 
                                         },
                                         sub_header: { 
                                             label: 'Placa', 
-                                            key: 'plate' 
+                                            field: 'plate' 
                                         },
                                         body_rows: [
-                                            { label: 'Navio', key: 'vessel_name' },
-                                            { label: 'Booking', key: 'booking' }
+                                            { label: 'Navio', field: 'vessel_name' },
+                                            { label: 'Booking', field: 'booking' }
                                         ]
                                     },
                                     // NOVA ESTRUTURA: modal_layout
                                     modal_layout: [
                                         { 
-                                            type: 'alert', 
+                                            element: 'alert', 
                                             color: 'red', 
                                             icon: 'hand-right', 
-                                            key: 'block_reason',
+                                            field: 'block_reason',
                                             title: 'Entrada Bloqueada' 
                                         },
                                         { 
-                                            type: 'alert', 
+                                            element: 'alert', 
                                             color: 'blue', 
                                             icon: 'information-circle', 
-                                            key: 'gate_instruction'
+                                            field: 'gate_instruction'
                                         },
-                                        // { type: 'section', title: 'Acesso' },
-                                        { type: 'section', title: 'Dados da Carga' },
-                                        { type: 'field', label: 'Peso Bruto', key: 'gross_weight' },
-                                        { type: 'field', label: 'Lacre', key: 'seal_number' },
-                                        { type: 'field', label: 'Temperatura', key: 'temp_setting' }, 
+                                        // { element: 'section', title: 'Acesso' },
+                                        { element: 'section', title: 'Dados da Carga' },
+                                        { element: 'field', label: 'Peso Bruto', field: 'gross_weight' },
+                                        { element: 'field', label: 'Lacre', field: 'seal_number' },
+                                        { element: 'field', label: 'Temperatura', field: 'temp_setting' }, 
                                         {
-                                            type: 'qrcode',
+                                            element: 'qrcode',
                                             title: 'Autorização de Entrada',
                                             caption: 'Aproxime do leitor no Gate 3',
-                                            key: 'gate_pass_token'
+                                            field: 'gate_pass_token'
                                         },
                                     ],
                                     actions: [
@@ -69,34 +70,34 @@ export const appointmentsAPICall = async (userId) => {
                                     card_layout: {
                                         header: { 
                                             label: 'Container', 
-                                            key: 'unit_id' 
+                                            field: 'unit_id' 
                                         },
                                         sub_header: { 
                                             label: 'Placa', 
-                                            key: 'plate' 
+                                            field: 'plate' 
                                         },
                                         body_rows: [
-                                            { label: 'Transportadora', key: 'carrier_name' },
-                                            { label: 'Destino', key: 'destination_port' }
+                                            { label: 'Transportadora', field: 'carrier_name' },
+                                            { label: 'Destino', field: 'destination_port' }
                                         ]
                                     },
                                     modal_layout: [
                                         { 
-                                            type: 'alert', 
+                                            element: 'alert', 
                                             color: 'green', 
                                             icon: 'check-circle', 
-                                            key: 'clearance_status',
+                                            field: 'clearance_status',
                                             title: 'Status Liberação'
                                         },
-                                        { type: 'section', title: 'Informações de Carga' },
-                                        { type: 'field', label: 'Peso', key: 'gross_weight' },
-                                        { type: 'field', label: 'Tipo', key: 'cargo_type' },
-                                        // { type: 'section', title: 'Acesso' },
+                                        { element: 'section', title: 'Informações de Carga' },
+                                        { element: 'field', label: 'Peso', field: 'gross_weight' },
+                                        { element: 'field', label: 'Tipo', field: 'cargo_type' },
+                                        // { element: 'section', title: 'Acesso' },
                                         {
-                                            type: 'qrcode',
+                                            element: 'qrcode',
                                             title: 'Gate Pass',
                                             caption: 'Apresente na portaria',
-                                            key: 'gate_pass_token'
+                                            field: 'gate_pass_token'
                                         }
                                     ]
                                 }
@@ -109,7 +110,110 @@ export const appointmentsAPICall = async (userId) => {
                             longitude: -46.34930933223951,
                             address: 'Av. Eduardo Guinle, s/n',
                             geofenceRadius: 500,
-                            appointmentsConfig: [
+                            ticket_layouts: {"2": [
+            {
+                element: "highlight_grid",
+                items: [
+                    { element: "highlight", field: "area_coleta",      label: "Área",      caption: "Local de coleta", color: "green" },
+                ],
+            },
+            {
+                element: "divider",
+                label:   "",
+            },
+            {
+                element: "section",
+                title:   "Veículo",
+            },
+            {
+                element: "field",
+                field:   "motorista",
+                label:   "Motorista",
+            },
+            {
+                element: "field",
+                field:   "placa",
+                label:   "Placa",
+            },
+            {
+                element: "field",
+                field:   "placa_carreta",
+                label:   "Placa carreta",
+            },
+            {
+                element: "field",
+                field:   "transportadora",
+                label:   "Transportadora",
+            },
+            {
+                element: "section",
+                title:   "Operação",
+            },
+            {
+                element: "field",
+                field:   "tipo_operacao",
+                label:   "Tipo",
+            },
+            {
+                element: "field",
+                field:   "armador",
+                label:   "Armador",
+            },
+            {
+                element: "field",
+                field:   "booking",
+                label:   "Booking",
+            },
+            {
+                element: "field",
+                field:   "previsao_navio",
+                label:   "Previsão navio",
+            },
+            {
+                element: "divider",
+                label:   "Condições do container",
+            },
+            {
+                element: "attention",
+                field:   "condicao_container",
+                title:   "Estado na entrega",
+                color:   "gray",
+                icon:    "clipboard-check-outline",
+            },
+            {
+                element: "divider",
+                label:   "",
+            },
+            {
+                element: "instruction",
+                title:   "INSTRUÇÕES DE ACESSO",
+                steps: [
+                    "Apresente a ordem de coleta impressa na guarita.",
+                    "Aguarde a vistoria do container pelo inspetor.",
+                    "Registre qualquer avaria no terminal de vistoria.",
+                    "Retire o container apenas após liberação eletrônica.",
+                    "Confira o número do lacre antes de sair da área.",
+                ],
+            },
+            {
+                element: "tag_container",
+                label:   "Acesso permitido",
+                tags: [
+                    { label: "Pátio de containers", color: "blue",   icon: "package-variant" },
+                    { label: "Área de vistoria",     color: "yellow", icon: "magnify"         },
+                ],
+            },
+            {
+                element: "tag_container",
+                label:   "Acesso negado",
+                tags: [
+                    { label: "Balança",          color: "red", icon: "scale"          },
+                    { label: "Doca de descarga", color: "red", icon: "warehouse"      },
+                    { label: "Escritório",        color: "red", icon: "office-building"},
+                ],
+            },
+        ]}, 
+                            appointments_layouts: [
                                 {
                                     id: 201,
                                     operation_type: 'DEFAULT',
@@ -117,28 +221,28 @@ export const appointmentsAPICall = async (userId) => {
                                     card_layout: {
                                         header: { 
                                             label: 'Veículo', 
-                                            key: 'plate' 
+                                            field: 'plate' 
                                         },
                                         body_rows: [
-                                            { label: 'Portão', key: 'gate_assignment' },
-                                            { label: 'Motorista', key: 'driver_name' }
+                                            { label: 'Portão', field: 'gate_assignment' },
+                                            { label: 'Motorista', field: 'driver_name' }
                                         ]
                                     },
                                     modal_layout: [
                                         { 
-                                            type: 'alert', 
+                                            element: 'alert', 
                                             color: 'blue', 
                                             icon: 'information', 
-                                            key: 'access_instructions'
+                                            field: 'access_instructions'
                                         },
-                                        { type: 'section', title: 'Dados do Acesso' },
-                                        { type: 'field', label: 'Motorista', key: 'driver_name' },
-                                        { type: 'field', label: 'Portão', key: 'gate_assignment' },
+                                        { element: 'section', title: 'Dados do Acesso' },
+                                        { element: 'field', label: 'Motorista', field: 'driver_name' },
+                                        { element: 'field', label: 'Portão', field: 'gate_assignment' },
                                         {
-                                            type: 'qrcode',
+                                            element: 'qrcode',
                                             title: 'Passe de Entrada',
                                             caption: 'Apresente este código na entrada',
-                                            key: 'gate_pass_token'
+                                            field: 'gate_pass_token'
                                         }
                                     ]
                                 }
@@ -148,7 +252,8 @@ export const appointmentsAPICall = async (userId) => {
                     appointments: [
                         {
                             id: '1',
-                            terminalId: '6c267c34-d755-4134-ba2a-c5780d9061a0',
+                            ref: 'AG-2026-002', 
+                            terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
                             operation_type: 'CONTAINER_IMPORT',
                             status: 'SCHEDULED',
                             booking: 'DPW-9090',
@@ -168,7 +273,8 @@ export const appointmentsAPICall = async (userId) => {
                         },
                         {
                             id: '2',
-                            terminalId: '6c267c34-d755-4134-ba2a-c5780d9061a0',
+                            ref: 'AG-2026-003', 
+                            terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
                             operation_type: 'CONTAINER_EXPORT',
                             status: 'No Pátio',
                             booking: 'DPW-9091',
@@ -186,7 +292,8 @@ export const appointmentsAPICall = async (userId) => {
                         },
                         {
                             id: '3',
-                            terminalId: '6c267c34-d755-4134-ba2a-c5780d9061a9',
+                            ref: 'AG-2026-004', 
+                            terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a9',
                             operation_type: 'DEFAULT',
                             status: 'SCHEDULED',
                             booking: 'BTP-5502',
@@ -201,7 +308,8 @@ export const appointmentsAPICall = async (userId) => {
                         },
                         {
                             id: '4',
-                            terminalId: '6c267c34-d755-4134-ba2a-c5780d9061a0',
+                            ref: 'AG-2026-005',
+                            terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
                             operation_type: 'CONTAINER_IMPORT',
                             status: 'Expirado',
                             booking: 'DPW-8888',
@@ -308,7 +416,7 @@ export const chatsAPICall = async (userId) => {
 export const mockLogin = (tax_id, password, device) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      console.log('Login attempt:', { tax_id, device });
+      // console.log('Login attempt:', { tax_id, device });
 
       // Caso 1: Sucesso
       if (tax_id === '43316667865' && password === '123456') {
@@ -467,7 +575,7 @@ export const registerTaxId = async (tax_id) => {
 
 export const deleteRegistration = async (tax_id) => {
   return new Promise((resolve) => {
-    console.log(`Mock API: Deleting registration for ${tax_id}`);
+    // console.log(`Mock API: Deleting registration for ${tax_id}`);
     setTimeout(() => {
       resolve({ data: { success: true }});
     }, 500);
@@ -476,7 +584,7 @@ export const deleteRegistration = async (tax_id) => {
 
 export const sendPhoneValidationCode = async (tax_id, name, phone) => {
   return new Promise((resolve) => {
-    console.log(`Mock API: Sending validation code for ${tax_id}, ${name}, ${phone}`);
+    // console.log(`Mock API: Sending validation code for ${tax_id}, ${name}, ${phone}`);
     setTimeout(() => {
       // Simulates sending the code. The backend handles the logic.
       resolve({ data: { success: true } });
@@ -495,7 +603,7 @@ export const checkPhoneValidationCode = async (tax_id, name, phone, code) => {
         reject({ code: 'TAX_ID_AND_PHONE_MISMATCH', message: 'Código incorreto.' });
       } else {
         // Scenario: Success
-        console.log(`Mock API: Code ${code} is valid for ${tax_id}`);
+        // console.log(`Mock API: Code ${code} is valid for ${tax_id}`);
         resolve({
           data: {
             success: true,
@@ -511,7 +619,7 @@ export const checkPhoneValidationCode = async (tax_id, name, phone, code) => {
 export const validateDriverLicense = async (tax_id, driver_license, device) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      console.log(`Mock API: Validating DL#${driver_license} for tax_id ${tax_id} on device ${device}`);
+      // console.log(`Mock API: Validating DL#${driver_license} for tax_id ${tax_id} on device ${device}`);
       if (driver_license === '111111') {
         // Scenario: Mismatch
         reject({ code: 'DRIVER_LICENSE_NUMBER_MISMATCH', message: 'Número da CNH não corresponde.' });

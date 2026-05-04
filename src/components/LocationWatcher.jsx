@@ -25,7 +25,7 @@ const LocationWatcher = () => {
     // 2. Monitoramento Mock (Simulado com deslocamento)
     useEffect(() => {
         if (DEBUG_MODE) {
-            console.log("🛠️ Mock GPS Ativado: Iniciando deslocamento lento...");
+            // console.log("🛠️ Mock GPS Ativado: Iniciando deslocamento lento...");
             
             // Posição inicial
             let currentLat = -23.924156643454374;
@@ -49,7 +49,7 @@ const LocationWatcher = () => {
             }, 3000);
 
             return () => {
-                console.log("🛑 Mock GPS Desativado.");
+                // console.log("🛑 Mock GPS Desativado.");
                 clearInterval(interval);
             };
         }

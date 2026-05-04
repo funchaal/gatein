@@ -24,7 +24,6 @@ function AppContent() {
   const { isChatModalVisible } = useSelector((state) => state.chat);
   const { isAppLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  const location = useSelector((state) => state.location);
   
   // ✅ Instancie a mutation
   const [restoreSession] = useRestoreSessionMutation();
@@ -44,18 +43,22 @@ function AppContent() {
     return null;
   }
 
+  console.log('We`re back babe')
+
   return (
-     <StateGate>
+  <>
+    <StateGate>
       <LocationWatcher />
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <AppNavigator />
-      <AppointmentDetailsModal />
       <ChatModal 
         visible={isChatModalVisible} 
         onClose={() => dispatch(closeChatModal())} 
       />
     </StateGate>
-  );
+    <AppointmentDetailsModal />
+  </>
+);
 }
 
 export default function App() {

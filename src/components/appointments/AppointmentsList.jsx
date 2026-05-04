@@ -1,88 +1,112 @@
-import React, { useEffect } from 'react';
-import { FlatList, Text, StyleSheet } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+// AppointmentList.jsx — versão atualizada
 
-// Seletores de Agendamentos (Agora simplificados para o mock)
-import { 
-  selectActiveAppointments, 
-  selectHistoryAppointments,
-  selectAppointmentsStatus
-} from '../../store/slices/appointmentsSlice';
+import React from "react";
+import { FlatList, Text, StyleSheet } from "react-native";
+import { useSelector } from "react-redux";
+import {
+    selectActiveAppointments,
+    selectHistoryAppointments,
+} from "../../store/slices/appointmentsSlice";
+import { selectAllTerminals } from "../../store/slices/terminalsSlice";
+import AppointmentCard from "./AppointmentCard";
+import { useFetchAppointmentsDataQuery } from "../../services/api";
+import { selectAuthUser } from "../../store/hooks";
 
-// Importar seletor de Terminais para pegar as configurações
-import { selectAllTerminals } from '../../store/slices/terminalsSlice';
+// ── Helpers de filtro (mesma lógica de antes, movida para cá) ──
+const MONTHS_COUNT = 12;
 
-import AppointmentCard from './AppointmentCard';
-import { api } from '../../services/api';
-import { selectAuthUser } from '../../store/hooks';
-import {useFetchAppointmentsDataQuery } from '../../services/api'
+function getAppointmentDate(appt) {
+    const dateStr =
+        appt?.schedule_start_time ||
+        appt?.Start_Time ||
+        appt?.start_time ||
+        appt?.scheduled_time;
+    if (!dateStr) return null;
+    try { return new Date(dateStr); } catch { return null; }
+}
 
-export default function AppointmentList({ type = 'active' }) {
-  const dispatch = useDispatch();
-  const status = useSelector(selectAppointmentsStatus);
-  const user = useSelector(selectAuthUser);
-  const USER_ID = user?.id;
+function applyFilters(data, search, selectedMonths, selectedYears) {
+    if (!data || data.length === 0) return [];
+    return data.filter((appt) => {
+        const date = getAppointmentDate(appt);
+        if (date) {
+            if (selectedMonths.length > 0 && !selectedMonths.includes(date.getMonth())) return false;
+            if (selectedYears.length > 0 && !selectedYears.includes(date.getFullYear())) return false;
+        }
+        if (search?.trim()) {
+            const q = search.toLowerCase();
+            const fields = [
+                appt.booking_number,
+                appt.Appt,
+                appt.id,
+                appt.booking,
+                appt.status?.Status,
+                appt.status,
+            ]
+                .filter(Boolean)
+                .map((v) => String(v).toLowerCase());
+            return fields.some((f) => f.includes(q));
+        }
+        return true;
+    });
+}
 
-  console.log("user_id", USER_ID)
+export default function AppointmentList({
+    type = "active",
+    search = "",
+    selectedMonths = [],
+    selectedYears = [],
+    onScroll,
+    scrollEventThrottle = 16,
+    ListHeaderComponent, 
+}) {
+    const user = useSelector(selectAuthUser);
+    const USER_ID = user?.id;
 
-  const { _, error, isLoading } = useFetchAppointmentsDataQuery(USER_ID);
+    useFetchAppointmentsDataQuery(USER_ID);
 
-  // 1. Dados dos Agendamentos (Filtrados por tipo usando os seletores do slice mockado)
-  const data = useSelector(state => 
-    type === 'active' ? selectActiveAppointments(state) : selectHistoryAppointments(state)
-  );
+    const rawData = useSelector((state) =>
+        type === "active"
+            ? selectActiveAppointments(state)
+            : selectHistoryAppointments(state)
+    );
 
-  console.log("data", data)
-  
-  // 2. Dados dos Terminais (Para buscar a config visual)
-  const terminals = useSelector(selectAllTerminals);
+    const terminals = useSelector(selectAllTerminals);
 
-  console.log("terminals", terminals)
+    const data = applyFilters(rawData, search, selectedMonths, selectedYears);
 
-
-  // Lógica Auxiliar: Encontra a configuração visual correta para um agendamento específico
-  const getCardConfig = (appointment) => {
-    if (!terminals || terminals.length === 0) return null;
-
-    // Acha o terminal pelo ID
-    const terminal = terminals.find(t => t.id === appointment.terminalId);
-    if (!terminal) return null;
-
-    // Dentro do terminal, acha a config pelo tipo de carga (ex: CONTAINER_LOAD)
-    // Se não achar o tipo específico, usa o primeiro (fallback)
-    const config = terminal.appointmentsConfig.find(c => c.type === appointment.type) 
-                   || terminal.appointmentsConfig.find(c => c.type === 'DEFAULT')
-                   || terminal.appointmentsConfig[0];
-    
-    return config;
-  };
-
-  return (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={({ item }) => {
-        // Para cada item, calculamos a configuração visual antes de renderizar
-        const config = getCardConfig(item);
-        console.log("config", config)
-        
+    const getCardConfig = (appt) => {
+        if (!terminals || terminals.length === 0) return null;
+        const terminal = terminals.find((t) => t.id === appt.terminal_id);
+        if (!terminal) return null;
         return (
-          <AppointmentCard 
-            item={item} 
-            config={config} // Passamos a config para o Card saber o que desenhar
-          />
+            terminal.appointments_layouts.find((c) => c.type === appt.type) ||
+            terminal.appointments_layouts.find((c) => c.type === "DEFAULT") ||
+            terminal.appointments_layouts[0]
         );
-      }}
-      contentContainerStyle={{ paddingBottom: 20 }}
-      ListEmptyComponent={
-        <Text style={styles.emptyText}>
-          {type === 'active' ? 'Nenhum agendamento ativo.' : 'Histórico vazio.'}
-        </Text>
-      }
-    />
-  );
+    };
+
+    return (
+        <FlatList
+            data={data}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item: appt }) => (
+                <AppointmentCard item={appt} config={getCardConfig(appt)} />
+            )}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={ListHeaderComponent}
+            ListEmptyComponent={
+                <Text style={styles.emptyText}>
+                    {type === "active" ? "Nenhum agendamento ativo." : "Histórico vazio."}
+                </Text>
+            }
+            onScroll={onScroll}
+            scrollEventThrottle={scrollEventThrottle}
+        />
+    );
 }
 
 const styles = StyleSheet.create({
-  emptyText: { textAlign: 'center', color: '#64748B', marginTop: 20 }
+    listContent: { paddingBottom: 32 },
+    emptyText: { textAlign: "center", color: "#64748B", marginTop: 20 },
 });

@@ -3,9 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import HomeScreen from '../screens/Home';
-import AppointmentsScreen from '../screens/Appointments';
+import ActivityScreen from '../screens/Activity';
 import ProfileScreen from '../screens/backlog/ProfileScreen';
-import MapScreen from '../screens/Map';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,10 +20,8 @@ export default function BottomTabNavigator() {
 
                     if (route.name === 'Home') {
                         iconName = focused ? 'home' : 'home-outline';
-                    } else if (route.name === 'Agendamentos') {
-                        iconName = focused ? 'calendar' : 'calendar-outline';
-                    } else if (route.name === 'Mapa') {
-                        iconName = focused ? 'map' : 'map-outline';
+                    } else if (route.name === 'Atividade') {
+                        iconName = focused ? 'list' : 'list-outline';
                     } else if (route.name === 'Perfil') {
                         iconName = focused ? 'person' : 'person-outline';
                     }
@@ -40,8 +37,7 @@ export default function BottomTabNavigator() {
             })}
         >
             <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Agendamentos" component={AppointmentsScreen} />
-            <Tab.Screen name="Mapa" component={MapScreen} />
+            <Tab.Screen name="Atividade" component={ActivityScreen} />
             <Tab.Screen name="Perfil" component={ProfileScreen} />
         </Tab.Navigator>
     );

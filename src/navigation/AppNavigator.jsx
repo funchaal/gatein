@@ -7,27 +7,28 @@ import BottomTabNavigator from './BottomTabNavigator';
 // Telas principais (Área Logada)
 import MapScreen from '../screens/Map';
 import AlertsScreen from '../screens/backlog/AlertsScreen';
-import TicketScreen from "../screens/backlog/TicketScreen";
-import FacialRecognitionScreen from '../screens/backlog/FacialRecognitionScreen';
-import CheckinSuccessScreen from '../screens/CheckinSuccess';
+import TicketScreen from "../screens/Ticket";
+// import FacialRecognitionScreen from '../screens/backlog/FacialRecognitionScreen';
+import CheckinProcessingScreen from '../screens/CheckinProcessing';
+import CheckinSuccess from '../screens/CheckinSuccess';
+import CheckinFail from '../screens/CheckinFail';
 
 // Telas de Auth (Login/Registro)
 import WelcomeScreen from "../screens/Welcome";
 import LoginScreen from "../screens/Login";
-import TermsScreen from "../screens/Terms";
-import TaxIdScreen from "../screens/register/TaxIdScreen";
-import NameScreen from "../screens/register/NameScreen";
-import LicenseScreen from "../screens/register/LicenseScreen";
-import DocumentCamera from "../screens/register/DocumentCamera";
-import PhoneScreen from "../screens/register/PhoneScreen";
-import PhoneCodeScreen from "../screens/register/PhoneCodeScreen";
-import DriverLicenseNumberScreen from "../screens/register/DriverLicenseNumberScreen";
-import DriverLicensePendingValidationScreen from "../screens/register/DriverLicenseNumberPendingValidationScreen";
-import DriverLicenseInvalidScreen from "../screens/register/DriverLicenseInvalidScreen";
-import PasswordScreen from "../screens/register/PasswordScreen";
-import SuccessScreen from "../screens/register/SuccessScreen";
-import InProgressConfirmationScreen from "../screens/register/InProgressConfirmationScreen";
-import UserNotFoundScreen from "../screens/register/UserNotFoundScreen";
+import TaxIdScreen from "../screens/register-screens/TaxId";
+import NameScreen from "../screens/register-screens/Name";
+import LicenseScreen from "../screens/register-screens/License";
+// import DocumentCamera from "../screens/register/DocumentCamera";
+import PhoneScreen from "../screens/register-screens/Phone";
+import PhoneCodeScreen from "../screens/register-screens/PhoneCode";
+import DriverLicenseNumberScreen from "../screens/register-screens/DriverLicenseNumber";
+import DriverLicensePendingValidationScreen from "../screens/register-screens/DriverLicenseNumberPendingValidation";
+import DriverLicenseInvalidScreen from "../screens/register-screens/DriverLicenseInvalid";
+import PasswordScreen from "../screens/register-screens/Password";
+import SuccessScreen from "../screens/register-screens/Success";
+import InProgressConfirmationScreen from "../screens/register-screens/InProgressConfirmation";
+import UserNotFoundScreen from "../screens/register-screens/UserNotFound";
 
 import { COLORS } from "../constants/colors";
 
@@ -86,13 +87,18 @@ export default function AppNavigator() {
                         options={{ title: 'Ticket de Operação', ...screenOptions }} 
                     />
                     <Stack.Screen 
-                        name="FacialRecognition" 
-                        component={FacialRecognitionScreen} 
-                        options={{ title: 'Reconhecimento Facial', ...screenOptions }} 
+                        name="CheckinProcessing" 
+                        component={CheckinProcessingScreen} 
+                        options={{ headerShown: false }} 
                     />
                     <Stack.Screen 
                         name="CheckinSuccess" 
-                        component={CheckinSuccessScreen} 
+                        component={CheckinSuccess} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name="CheckinFail" 
+                        component={CheckinFail} 
                         options={{ headerShown: false }} 
                     />
                 </Stack.Group>
@@ -150,21 +156,6 @@ export default function AppNavigator() {
                         name="License" 
                         component={LicenseScreen}
                         options={{ title: 'Documento de Identificação', ...screenOptions }}
-                    />
-                    <Stack.Screen 
-                        name="DocumentCamera" 
-                        component={DocumentCamera}
-                        options={{ 
-                            headerShown: false,
-                            gestureEnabled: false,
-                            presentation: 'fullScreenModal', 
-                            ...screenOptions
-                        }}
-                    />
-                    <Stack.Screen 
-                        name='AuthFacialRecognition' 
-                        component={FacialRecognitionScreen} 
-                        options={{ title: 'Reconhecimento Facial', ...screenOptions }} 
                     />
                     <Stack.Screen 
                         name='PhoneCode' 

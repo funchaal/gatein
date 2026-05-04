@@ -49,13 +49,13 @@ const appointmentsSlice = createSlice({
         builder
             .addMatcher(api.endpoints.fetchAppointmentsData.matchPending, (state) => {
                 state.status = 'loading';
-                console.log("Loading... ad")
+                // console.log("Loading... ad")
                 state.error = null;
             })
             .addMatcher(api.endpoints.fetchAppointmentsData.matchFulfilled, (state, action) => {
                 state.status = 'succeeded';
-                console.log("Fulfilled... ad")
-                console.log(action.payload.appointments)
+                // console.log("Fulfilled... ad")
+                // console.log(action.payload.appointments)
                 state.items = action.payload.appointments;
             })
             .addMatcher(api.endpoints.fetchAppointmentsData.matchRejected, (state, action) => {
@@ -69,16 +69,21 @@ const appointmentsSlice = createSlice({
 
                 ticketsResponse.forEach(ticketItem => {
                     const appointmentRef = ticketItem.appointment_ref;
+
                     
                     // 4. Buscamos o agendamento cruzando companyId E ref
                     const index = state.items.findIndex(
-                        (appt) => appt.company_id === companyId && appt.ref === appointmentRef
+                        (appt) => appt.terminal_id === companyId && appt.ref === appointmentRef
                     );
                     
+                    // console.log("Index:", index);
+                    
+
                     if (index !== -1) {
                         state.items[index].status = 'CHECKED_IN';
-                        state.items[index].ticket = ticketItem;
+                        state.items[index].ticket = ticketItem.ticket;
                     }
+
                 });
             })
                 },
@@ -109,10 +114,18 @@ export const selectAppointmentById = (state, id) =>
 // ============================================================================
 export const selectOnGoingAppointments = createSelector(
     [selectAllAppointments],
-    (items) => items.filter(item => 
-        ['CHECKED_IN', 'IN_PROGRESS'].includes(item.status)
+    (items) => (items || []).filter(item => 
+        ['CHECKED_IN', 'IN_PROGRESS'].includes(item?.status)
     )
 );
+
+export const selectOnGoingTerminalId = createSelector(
+  [selectOnGoingAppointments],
+  (items) => (items && items.length > 0) ? items[0].terminal_id : undefined
+);
+
+
+
 
 export const selectActiveAppointments = createSelector(
     [selectAllAppointments],
@@ -126,14 +139,10 @@ export const selectHistoryAppointments = createSelector(
     (items) => items 
 );
 
-export const selectCurrentCheckedInAppointment = createSelector(
-    [selectAllAppointments],
-    (items) => items.find(item => item.status === 'CHECKED_IN')
-);
 
 export const selectIsDriverCheckedIn = createSelector(
-    [selectCurrentCheckedInAppointment],
-    (appointment) => !!appointment 
+    [selectOnGoingAppointments],
+    (appointments) => appointments.length > 0 
 );
 
 // ============================================================================

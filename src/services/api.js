@@ -85,12 +85,12 @@ export const api = createApi({
 
     // --- CHECKIN ---
     checkinRequest: builder.mutation({
-      query: (terminalId) => ({
-        url: `/checkin/${terminalId}`,
+      query: (terminal_id) => ({
+        url: `/checkin/${terminal_id}`,
         method: 'POST',
         timeout: process.env.CHECKIN_TIMEOUT ? parseInt(process.env.CHECKIN_TIMEOUT, 10) : 30000,
       }),
-      invalidatesTags: ['Appointments'],
+      // invalidatesTags: ['Appointments'],
     }),
 
     // --- APPOINTMENTS ---

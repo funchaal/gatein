@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import Input from '../../../components/common/Input';
-import MainAsyncButton from '../../../components/common/MainAsyncButton';
-import SecondaryButton from '../../../components/common/SecondaryButton';
+import Input from '../../../components/ui/Input';
+import MainAsyncButton from '../../../components/ui/MainAsyncButton';
+import SecondaryButton from '../../../components/ui/SecondaryButton';
 import UserBadge from './UserBadge';
 import { styles } from '../Login.styles';
 

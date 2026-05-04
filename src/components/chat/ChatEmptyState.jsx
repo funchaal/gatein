@@ -17,12 +17,12 @@ export default function ChatEmptyState() {
   useEffect(() => {
     if (!appointments?.length || !terminals?.length) return;
 
-    const terminalIds = new Set(
-      appointments.map(app => app.terminalId)
+    const terminal_ids = new Set(
+      appointments.map(app => app.terminal_id)
     );
 
     const relatedTerminals = terminals.filter(t =>
-      terminalIds.has(t.id)
+      terminal_ids.has(t.id)
     );
 
     setSuggestions(relatedTerminals);
@@ -30,7 +30,7 @@ export default function ChatEmptyState() {
 
   const handleStart = (terminal) => {
     dispatch(startChatWithTerminal({
-      terminalId: terminal.id,
+      terminal_id: terminal.id,
       terminalName: terminal.name
     }));
   };

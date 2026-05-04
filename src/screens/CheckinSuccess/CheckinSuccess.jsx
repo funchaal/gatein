@@ -1,25 +1,58 @@
-import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import RulesModal from '../../components/common/RulesModal';
+import Icon from 'react-native-vector-icons/Feather';
 
-import CheckinSuccessContent from './components/CheckinSuccessContent';
-import { handleAgreeAction } from './helpers';
-import { styles } from './CheckinSuccess.styles';
+import MainAsyncButton from '../../components/ui/MainAsyncButton';
+import { COLORS } from '../../constants/colors';
+import { globalStyles } from '../../constants/styles';
 
 export default function CheckinSuccessScreen() {
     const navigation = useNavigation();
-    const [isModalVisible, setModalVisible] = useState(false);
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <CheckinSuccessContent onShowModal={() => setModalVisible(true)} />
-            
-            <RulesModal
-                visible={isModalVisible}
-                onClose={() => setModalVisible(false)}
-                onAgree={() => handleAgreeAction(navigation, setModalVisible)}
-            />
+            <View style={styles.container}>
+                <View style={styles.content}>
+                    <Text style={globalStyles.title}>Checkin{'\n'}Concluído</Text>
+                    <Text style={globalStyles.subtitle}>
+                        Seu checkin foi realizado com sucesso.
+                    </Text>
+
+                    <View style={styles.iconContainer}>
+                        <Icon name="check-circle" size={120} color={COLORS.primary} />
+                    </View>
+                </View>
+
+                <MainAsyncButton
+                    title="Prosseguir"
+                    onPress={async () => {
+                        navigation.navigate('Main');
+                    }}
+                />
+            </View>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
+    container: {
+        flex: 1,
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 10
+    },
+    content: {
+        flex: 1,
+    },
+    iconContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
+});

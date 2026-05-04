@@ -91,13 +91,13 @@ const chatSlice = createSlice({
       );
     }, 
     startChatWithTerminal: (state, action) => {
-        const { terminalId, terminalName } = action.payload;
-        const channelId = `chan_${terminalId}`;
+        const { terminal_id, terminalName } = action.payload;
+        const channelId = `chan_${terminal_id}`;
 
         if (!state.channels.byId[channelId]) {
             state.channels.byId[channelId] = {
                 id: channelId,
-                replier_id: terminalId,
+                replier_id: terminal_id,
                 replier_name: terminalName,
                 replier_avatar: null,
                 replier_type: 'terminal',

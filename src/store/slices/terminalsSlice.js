@@ -1,5 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { api } from '../../services/api';
+import { selectOnGoingTerminalId } from './appointmentsSlice';
 
 const initialState = {
   items: [],
@@ -28,12 +29,22 @@ const terminalsSlice = createSlice({
 
 export const { selectTerminal, setTerminals } = terminalsSlice.actions;
 
+
+
 // Seletores
 export const selectAllTerminals = (state) => state.terminals.items;
 export const selectTerminalById = (state, id) => state.terminals.items.find(t => t.id === id);
 export const selectCurrentTerminalConfig = (state) => {
-const id = state.terminals.selectedTerminalId;
-return state.terminals.items.find(t => t.id === id);
+  const id = state.terminals.selectedTerminalId;
+  return state.terminals.items.find(t => t.id === id);
 }
 
+export const selectTicketLayouts = createSelector(
+  [selectAllTerminals, selectOnGoingTerminalId],
+  (terminals, terminalId) => {
+    const terminal = terminals.find(t => t.id === terminalId);
+    
+    return terminal?.ticket_layouts || {};
+  }
+);
 export default terminalsSlice.reducer;
