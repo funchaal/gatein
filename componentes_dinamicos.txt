@@ -1,0 +1,178 @@
+# Componentes Dinâmicos - AppointmentCard e AppointmentDetailsModal
+
+Este documento descreve detalhadamente os componentes dinâmicos utilizados no `AppointmentCard` e no `AppointmentDetailsModal`, bem como a estrutura JSON esperada na resposta do servidor (na propriedade `config` e nos dados do agendamento) para renderizá-los corretamente.
+
+Ambos os componentes dependem de uma propriedade `config` que dita o layout, e de um objeto de dados do agendamento (referenciado como `item`, `data` ou `appointment`). Os valores dos campos são extraídos dinamicamente do objeto de agendamento usando a propriedade `field` (que funciona como um caminho/path para a chave no objeto, sendo possível acessar chaves aninhadas, por exemplo: `driver.name`).
+
+---
+
+## 1. AppointmentCard (Layout do Cartão)
+
+O `AppointmentCard` renderiza um resumo do agendamento. Ele depende do objeto `config.card_layout` para construir seu corpo principal, enquanto o cabeçalho superior (Data/Hora e ID) e a Badge de Status são fixos (baseados nas chaves básicas do agendamento).
+
+### Componentes Dinâmicos do `card_layout`:
+
+1. **Header** (Cabeçalho principal do cartão)
+   - **Descrição:** Título de maior destaque no cartão.
+   - **Propriedades (props):**
+     - `label` (String, opcional): Texto de rótulo que aparece acima do valor.
+     - `field` (String): Caminho no objeto do agendamento de onde o valor será extraído.
+
+2. **SubHeader** (Subtítulo do cartão)
+   - **Descrição:** Informação secundária que aparece logo abaixo do Header.
+   - **Propriedades (props):**
+     - `label` (String, opcional): Texto de rótulo que aparece acima do valor.
+     - `field` (String): Caminho no objeto do agendamento de onde o valor será extraído.
+
+3. **Row / body_rows** (Linhas do corpo/rodapé do cartão)
+   - **Descrição:** Lista de informações adicionais (chave-valor) exibidas na parte inferior do cartão, configuradas através da matriz `body_rows`.
+   - **Propriedades (props em cada objeto da matriz):**
+     - `label` (String, opcional): Texto exibido à esquerda (a chave/rótulo).
+     - `field` (String): Caminho no objeto do agendamento de onde o valor será extraído (exibido à direita).
+
+### Estrutura JSON Esperada (`config.card_layout`):
+```json
+{
+  "card_layout": {
+    "header": {
+      "label": "Motorista",
+      "field": "driver.name"
+    },
+    "sub_header": {
+      "label": "Placa",
+      "field": "vehicle.plate"
+    },
+    "body_rows": [
+      {
+        "label": "Transportadora",
+        "field": "company.name"
+      },
+      {
+        "label": "Tipo de Carga",
+        "field": "cargo_type"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 2. AppointmentDetailsModal (Layout do Modal de Detalhes)
+
+O `AppointmentDetailsModal` é renderizado ao clicar em um `AppointmentCard`. O modal renderiza um cabeçalho fixo com o Status e o ID, seguido pelo `card_layout` (o mesmo Header e SubHeader do cartão), e então itera sobre o array `config.modal_layout` para renderizar as seções de detalhes através de componentes mapeados pela chave `element`.
+
+### Componentes Dinâmicos do `modal_layout` (mapeados por `element`):
+
+1. **Section (`element: "section"`)**
+   - **Descrição:** Cria um título de seção para separar grupos de informações.
+   - **Propriedades (props):**
+     - `title` (String): O texto do título da seção.
+
+2. **Field (`element: "field"`)**
+   - **Descrição:** Exibe uma linha com um rótulo e seu respectivo valor extraído dos dados do agendamento.
+   - **Propriedades (props):**
+     - `label` (String): O texto do rótulo exibido acima do valor.
+     - `field` (String): Caminho no objeto do agendamento de onde o valor será extraído.
+
+3. **Alert (`element: "alert"`)**
+   - **Descrição:** Exibe uma caixa de destaque (aviso, informação, erro) com cores de fundo, borda e ícone personalizados.
+   - **Propriedades (props):**
+     - `field` (String): Caminho no objeto de onde a *mensagem* do alerta será extraída.
+     - `title` (String, opcional): Título em negrito dentro do alerta. Se não houver, a mensagem principal ficará com uma fonte maior.
+     - `color` (String): Define as cores do alerta. Opções válidas: `"purple"`, `"blue"`, `"green"`, `"yellow"`, `"red"`, `"gray"`. (Padrão: `"gray"`).
+     - `icon` (String, opcional): Nome do ícone (MaterialCommunityIcons). Chaves mapeadas válidas: `"alert-circle"`, `"check-bold"`, `"check-circle"`, `"information"`, `"information-circle"`, `"hand-right"`, `"warning"`.
+
+4. **QRCode (`element: "qrcode"`)**
+   - **Descrição:** Gera e exibe um código QR com base em um valor específico do agendamento.
+   - **Propriedades (props):**
+     - `field` (String): Caminho no objeto cujo valor se tornará o conteúdo do QR Code.
+     - `title` (String, opcional): Título exibido acima do QR Code.
+     - `caption` (String, opcional): Texto descritivo exibido abaixo do QR Code.
+
+### Estrutura JSON Esperada (`config.modal_layout`):
+```json
+{
+  "modal_layout": [
+    {
+      "element": "alert",
+      "color": "yellow",
+      "icon": "warning",
+      "title": "Atenção",
+      "field": "warnings.safety_gear"
+    },
+    {
+      "element": "section",
+      "title": "Detalhes da Carga"
+    },
+    {
+      "element": "field",
+      "label": "Peso Total",
+      "field": "cargo.weight"
+    },
+    {
+      "element": "field",
+      "label": "Documento (NFe)",
+      "field": "cargo.invoice_number"
+    },
+    {
+      "element": "qrcode",
+      "title": "Código de Acesso",
+      "field": "access_token",
+      "caption": "Apresente na portaria"
+    }
+  ]
+}
+```
+
+---
+
+## 3. Estrutura Base do Objeto do Agendamento (Data / Item)
+
+Para que o cartão base e o modal funcionem (além dos campos dinâmicos referenciados pela propriedade `field`), o objeto do agendamento enviado na resposta do servidor deve conter obrigatoriamente algumas propriedades estruturais:
+
+```json
+{
+  "ref": "12345ABC",                      // ID/Referência do agendamento (obrigatório)
+  "status": "Em andamento",               // Status em texto para a badge (obrigatório)
+  "schedule": {
+    "start_time": "2026-05-13T14:30:00Z"  // Data/Hora do agendamento. (Também aceito "schedule_start_time" direto na raiz)
+  },
+  
+  // A partir daqui, as propriedades variam e dependem das configurações de "field" do layout
+  "driver": { "name": "João da Silva" },
+  "vehicle": { "plate": "ABC-1234" },
+  "company": { "name": "Transportes Expresso" },
+  "cargo_type": "Seca",
+  "cargo": { 
+     "weight": "15 Toneladas",
+     "invoice_number": "NFe-998877"
+  },
+  "warnings": { "safety_gear": "Obrigatório uso de EPI (Capacete e Botas)." },
+  "access_token": "QR_CONTENT_ABC123"
+}
+```
+
+## Resumo da Resposta Completa da API
+
+A resposta do servidor que combina as configurações de layout (`config`) e os dados (`data`) pode ser estruturada da seguinte maneira num endpoint de lista de agendamentos:
+
+```json
+{
+  "config": {
+    "card_layout": { 
+        "header": { ... }, 
+        "sub_header": { ... }, 
+        "body_rows": [ ... ] 
+    },
+    "modal_layout": [ 
+        { "element": "section", ... }, 
+        { "element": "field", ... } 
+    ]
+  },
+  "data": [
+    { "ref": "123", "status": "Agendado", ... },
+    { "ref": "124", "status": "Cancelado", ... }
+  ]
+}
+```

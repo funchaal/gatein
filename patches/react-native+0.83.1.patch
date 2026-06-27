@@ -1,0 +1,88 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+index 5cebe10..bce7a29 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+@@ -647,7 +647,26 @@ function InternalTextInput(props: TextInputProps): React.Node {
+ 
+   // Keep the original (potentially nested) style when possible, as React can diff these more efficiently
+   let _style = props.style;
+-  const flattenedStyle = flattenStyle<TextStyleProp>(props.style);
++  let flattenedStyle = flattenStyle<TextStyleProp>(props.style);
++  if (flattenedStyle != null) {
++    const hasFontFamily = flattenedStyle.fontFamily;
++    if (!hasFontFamily || hasFontFamily.startsWith('NotoSans')) {
++      const isItalic = flattenedStyle.fontStyle === 'italic';
++      const weight = flattenedStyle.fontWeight;
++      let font = 'NotoSans-Regular';
++      if (weight === 'bold' || weight === '700' || weight === '800' || weight === '900') {
++        font = isItalic ? 'NotoSans-BoldItalic' : 'NotoSans-Bold';
++      } else if (weight === '600' || weight === 'semibold') {
++        font = isItalic ? 'NotoSans-SemiBoldItalic' : 'NotoSans-SemiBold';
++      } else if (weight === '500' || weight === 'medium') {
++        font = isItalic ? 'NotoSans-MediumItalic' : 'NotoSans-Medium';
++      } else if (isItalic) {
++        font = 'NotoSans-Italic';
++      }
++      _style = [_style, { fontFamily: font }];
++      flattenedStyle = flattenStyle<TextStyleProp>(_style);
++    }
++  }
+   if (flattenedStyle != null) {
+     let overrides: ?{...TextStyleInternal} = null;
+     if (typeof flattenedStyle?.fontWeight === 'number') {
+diff --git a/node_modules/react-native/Libraries/Text/Text.js b/node_modules/react-native/Libraries/Text/Text.js
+index f30261d..e8bb12d 100644
+--- a/node_modules/react-native/Libraries/Text/Text.js
++++ b/node_modules/react-native/Libraries/Text/Text.js
+@@ -173,6 +173,25 @@ if (ReactNativeFeatureFlags.reduceDefaultPropsInText()) {
+     let _selectable = selectable;
+ 
+     let processedStyle = flattenStyle<TextStyleProp>(_style);
++    if (processedStyle != null) {
++      const hasFontFamily = processedStyle.fontFamily;
++      if (!hasFontFamily || hasFontFamily.startsWith('NotoSans')) {
++        const isItalic = processedStyle.fontStyle === 'italic';
++        const weight = processedStyle.fontWeight;
++        let font = 'NotoSans-Regular';
++        if (weight === 'bold' || weight === '700' || weight === '800' || weight === '900') {
++          font = isItalic ? 'NotoSans-BoldItalic' : 'NotoSans-Bold';
++        } else if (weight === '600' || weight === 'semibold') {
++          font = isItalic ? 'NotoSans-SemiBoldItalic' : 'NotoSans-SemiBold';
++        } else if (weight === '500' || weight === 'medium') {
++          font = isItalic ? 'NotoSans-MediumItalic' : 'NotoSans-Medium';
++        } else if (isItalic) {
++          font = 'NotoSans-Italic';
++        }
++        _style = [_style, { fontFamily: font }];
++        processedStyle = flattenStyle<TextStyleProp>(_style);
++      }
++    }
+     if (processedStyle != null) {
+       let overrides: ?{...TextStyleInternal} = null;
+       if (typeof processedStyle.fontWeight === 'number') {
+@@ -422,6 +441,25 @@ if (ReactNativeFeatureFlags.reduceDefaultPropsInText()) {
+     let _selectable = selectable;
+ 
+     let processedStyle = flattenStyle<TextStyleProp>(_style);
++    if (processedStyle != null) {
++      const hasFontFamily = processedStyle.fontFamily;
++      if (!hasFontFamily || hasFontFamily.startsWith('NotoSans')) {
++        const isItalic = processedStyle.fontStyle === 'italic';
++        const weight = processedStyle.fontWeight;
++        let font = 'NotoSans-Regular';
++        if (weight === 'bold' || weight === '700' || weight === '800' || weight === '900') {
++          font = isItalic ? 'NotoSans-BoldItalic' : 'NotoSans-Bold';
++        } else if (weight === '600' || weight === 'semibold') {
++          font = isItalic ? 'NotoSans-SemiBoldItalic' : 'NotoSans-SemiBold';
++        } else if (weight === '500' || weight === 'medium') {
++          font = isItalic ? 'NotoSans-MediumItalic' : 'NotoSans-Medium';
++        } else if (isItalic) {
++          font = 'NotoSans-Italic';
++        }
++        _style = [_style, { fontFamily: font }];
++        processedStyle = flattenStyle<TextStyleProp>(_style);
++      }
++    }
+     if (processedStyle != null) {
+       let overrides: ?{...TextStyleInternal} = null;
+       if (typeof processedStyle.fontWeight === 'number') {
