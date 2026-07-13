@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,9 @@ import {
 import { useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
-import { useLazyFetchActiveAnnouncementsQuery } from '../../../services/api';
+import { useLazyFetchActiveAnnouncementsQuery, useLogAnnouncementEventsMutation } from '../../../services/api';
 import { COLORS } from '../../../constants/colors';
+import { trackAnnouncementViewed } from '../../../utils/activityTracker';
 
 const { width: windowWidth } = Dimensions.get('window');
 const CARD_WIDTH = windowWidth - 40;
@@ -110,12 +111,33 @@ export default function AnnouncementsCarousel() {
     }
   }, [userCoords, trigger]);
 
-  const announcements = response?.data || [];
+  const announcements = useMemo(() => response?.data || [], [response?.data]);
 
   // activeIndexRef  → índice real do carousel (para o auto-play, sem stale closure)
   // displayedIndex  → índice do conteúdo visível no footer (muda só no meio da animação)
   const activeIndexRef   = useRef(0);
   const [displayedIndex, setDisplayedIndex] = useState(0);
+
+  const [logAnnouncementEvents] = useLogAnnouncementEventsMutation();
+
+  useEffect(() => {
+    if (announcements && announcements.length > 0) {
+      const activeItem = announcements[displayedIndex];
+      if (activeItem && trackAnnouncementViewed(activeItem.id)) {
+        logAnnouncementEvents({
+          events: [
+            {
+              announcement_id: activeItem.id,
+              event: 'viewed',
+              message: `Aviso "${activeItem.title}" visualizado no app móvel.`
+            }
+          ]
+        }).unwrap().catch(err => {
+          console.error("Erro ao enviar log de visualização de aviso:", err);
+        });
+      }
+    }
+  }, [displayedIndex, announcements, logAnnouncementEvents]);
 
   const flatListRef   = useRef(null);
   const autoPlayRef   = useRef(null);

@@ -20,13 +20,13 @@ const activitySlice = createSlice({
         updateAppointmentStatus: (state, action) => {
             const { id, status } = action.payload;
             const index = state.appointments.findIndex(item => item.id === id);
-            
+
             if (index !== -1) {
                 state.appointments[index].status = status;
             } else {
                 const tripIndex = state.trips.findIndex(item => item.id === id);
                 if (tripIndex !== -1) {
-                     state.trips[tripIndex].status = status;
+                    state.trips[tripIndex].status = status;
                 }
             }
             if (state.selectedAppointment?.id === id) {
@@ -36,18 +36,18 @@ const activitySlice = createSlice({
         updateAppointmentsStatusCheckinDone: (state, action) => {
             const { id, tickets } = action.payload;
             const index = state.appointments.findIndex(item => item.id === id);
-            
+
             if (index !== -1) {
                 state.appointments[index].status = 'CHECKED_IN';
-                state.appointments[index].tickets = tickets; 
+                state.appointments[index].tickets = tickets;
             } else {
                 const tripIndex = state.trips.findIndex(item => item.id === id);
                 if (tripIndex !== -1) {
-                     state.trips[tripIndex].status = 'CHECKED_IN';
-                     state.trips[tripIndex].tickets = tickets;
+                    state.trips[tripIndex].status = 'CHECKED_IN';
+                    state.trips[tripIndex].tickets = tickets;
                 }
             }
-            
+
             if (state.selectedAppointment?.id === id) {
                 state.selectedAppointment.status = 'CHECKED_IN';
                 state.selectedAppointment.tickets = tickets;
@@ -72,14 +72,14 @@ const activitySlice = createSlice({
             })
             .addMatcher(api.endpoints.fetchActivityData.matchFulfilled, (state, action) => {
                 state.status = 'succeeded';
-                
+
                 // Agora lê diretamente do meta retornado pela API
-                state.hasMore = action.payload.meta?.has_more ?? false; 
-                
+                state.hasMore = action.payload.meta?.has_more ?? false;
+
                 const responseData = action.payload.data || {};
                 const appointments = responseData.appointments || [];
                 const trips = responseData.trips || [];
-                const { offset } = action.meta.arg.originalArgs; 
+                const { offset } = action.meta.arg.originalArgs;
 
                 // LOGS PARA INSPEÇÃO
                 console.log('\n--- [REDUX SLICE] fetchActivityData ---');
@@ -117,7 +117,7 @@ const activitySlice = createSlice({
 
                 ticketsResponse.forEach(ticketItem => {
                     const appointmentRef = ticketItem.appointment_ref;
-                    
+
                     const index = state.appointments.findIndex(
                         (appt) => appt.terminal_id === companyId && appt.ref === appointmentRef
                     );
@@ -127,11 +127,11 @@ const activitySlice = createSlice({
                         state.appointments[index].ticket = ticketItem.ticket;
                     } else {
                         const tripIndex = state.trips.findIndex(
-                           (trip) => trip.terminal_id === companyId && trip.ref === appointmentRef
+                            (trip) => trip.terminal_id === companyId && trip.ref === appointmentRef
                         );
                         if (tripIndex !== -1) {
-                             state.trips[tripIndex].status = 'CHECKED_IN';
-                             state.trips[tripIndex].ticket = ticketItem.ticket;
+                            state.trips[tripIndex].status = 'CHECKED_IN';
+                            state.trips[tripIndex].ticket = ticketItem.ticket;
                         }
                     }
                 });
@@ -139,11 +139,11 @@ const activitySlice = createSlice({
     },
 });
 
-export const { 
-    selectAppointment, 
-    updateAppointmentStatus, 
-    clearActivity, 
-    updateAppointmentsStatusCheckinDone 
+export const {
+    selectAppointment,
+    updateAppointmentStatus,
+    clearActivity,
+    updateAppointmentsStatusCheckinDone
 } = activitySlice.actions;
 
 // ... (Seletores Básicos permanecem os mesmos) ...
@@ -159,25 +159,25 @@ export const selectActivityStatus = (state) => state.activity.status;
 // Novo Seletor exportado
 export const selectHasMoreActivity = (state) => state.activity.hasMore;
 
-export const selectAppointmentById = (state, id) => 
+export const selectAppointmentById = (state, id) =>
     state.activity.appointments.find(item => item.id === id) || state.activity.trips.find(item => item.id === id);
 
 // ... (Seletores Derivados permanecem os mesmos) ...
 export const selectOnGoingAppointments = createSelector(
     [selectAllActivity],
-    (items) => (items || []).filter(item => 
+    (items) => (items || []).filter(item =>
         ['CHECKED_IN', 'IN_PROGRESS'].includes(item?.status) && !(item?.type === 'trip' || item?.is_trip)
     )
 );
 
 export const selectOnGoingTerminalId = createSelector(
-  [selectOnGoingAppointments],
-  (items) => (items && items.length > 0) ? items[0].terminal_id : undefined
+    [selectOnGoingAppointments],
+    (items) => (items && items.length > 0) ? items[0].terminal_id : undefined
 );
 
 export const selectIsDriverCheckedIn = createSelector(
     [selectOnGoingAppointments],
-    (appointments) => appointments.length > 0 
+    (appointments) => appointments.length > 0
 );
 
 export const selectByType = {

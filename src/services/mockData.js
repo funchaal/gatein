@@ -66,7 +66,6 @@ export const activityAPICall = async (userId) => {
                                 },
                                 {
                                     id: 102,
-                                    operation_type: 'CONTAINER_EXPORT',
                                     title: 'Exportação de Container',
                                     card_layout: {
                                         header: { 
@@ -222,7 +221,6 @@ export const activityAPICall = async (userId) => {
                             appointments_layouts: [
                                 {
                                     id: 201,
-                                    operation_type: 'DEFAULT',
                                     title: 'Acesso Geral',
                                     card_layout: {
                                         header: { 
@@ -265,7 +263,6 @@ export const activityAPICall = async (userId) => {
                             id: '1',
                             ref: 'AG-2026-002', 
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
-                            operation_type: 'CONTAINER_IMPORT',
                             status: 'SCHEDULED',
                             booking: 'DPW-9090',
                             schedule_start_time: '2024-10-21 14:00',
@@ -286,7 +283,6 @@ export const activityAPICall = async (userId) => {
                             id: '2',
                             ref: 'AG-2026-003', 
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
-                            operation_type: 'CONTAINER_EXPORT',
                             status: 'No Pátio',
                             booking: 'DPW-9091',
                             schedule_start_time: '2024-10-21 16:30',
@@ -305,7 +301,6 @@ export const activityAPICall = async (userId) => {
                             id: '3',
                             ref: 'AG-2026-004', 
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a9',
-                            operation_type: 'DEFAULT',
                             status: 'SCHEDULED',
                             booking: 'BTP-5502',
                             schedule_start_time: '2024-10-21 18:00',
@@ -321,7 +316,6 @@ export const activityAPICall = async (userId) => {
                             id: '4',
                             ref: 'AG-2026-005',
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
-                            operation_type: 'CONTAINER_IMPORT',
                             status: 'Expirado',
                             booking: 'DPW-8888',
                             schedule_start_time: '2024-10-20 10:00',
@@ -341,7 +335,6 @@ export const activityAPICall = async (userId) => {
                             id: 't1',
                             ref: 'TRIP-001',
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
-                            operation_type: 'TRIP',
                             is_trip: true,
                             status: 'IN_PROGRESS',
                             schedule_start_time: '2024-10-21 14:00',

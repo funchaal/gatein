@@ -161,6 +161,7 @@ export const styles = StyleSheet.create({
         flex: 1,
         height: 1,
         backgroundColor: '#cbd5e1',
+        marginHorizontal: 6,
     },
     cardRouteIcon: {
         marginHorizontal: 4,

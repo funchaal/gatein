@@ -1,11 +1,12 @@
-import React, { forwardRef, useState, useCallback, useMemo, useEffect } from "react";
+import React, { forwardRef, useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { FlatList, Text, StyleSheet, ActivityIndicator, View } from "react-native";
 import { useSelector } from "react-redux";
 import { selectByType, selectHasMoreActivity } from "../../store/slices/activitySlice";
 import { selectAllTerminals, selectAllTruckingCompanies, selectAllLayouts } from "../../store/slices/companiesSlice"; 
 import AppointmentCard from "./AppointmentCard";
-import { useFetchActivityDataQuery } from "../../services/api";
+import { useFetchActivityDataQuery, useLogActivityEventsMutation } from "../../services/api";
 import { useFuzzyFilter } from "../../utils/levenshtein_search";
+import { trackViewed } from "../../utils/activityTracker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { COLORS } from "../../constants/colors";
 
@@ -59,6 +60,46 @@ const ActivityList = forwardRef(function ActivityList({
         extraFilters: Object.values(extraFilters),
         minResults: 0,
     });
+
+    const [logEvents] = useLogActivityEventsMutation();
+
+    const handleItemsViewed = useCallback((items) => {
+        const unseenEvents = [];
+        items.forEach(item => {
+            const activityId = item.id;
+            const activityType = item.type;
+            
+            if (trackViewed(activityId)) {
+                unseenEvents.push({
+                    activity_type: activityType,
+                    activity_id: activityId,
+                    event: "viewed",
+                    message: `${activityType === "trip" ? "Viagem" : "Agendamento"} visualizado no app móvel.`
+                });
+            }
+        });
+
+        if (unseenEvents.length > 0) {
+            logEvents({ events: unseenEvents }).unwrap().catch(err => {
+                console.error("Erro ao enviar logs de visualização:", err);
+            });
+        }
+    }, [logEvents]);
+
+    useEffect(() => {
+        if (!scrollable && data && data.length > 0) {
+            handleItemsViewed(data);
+        }
+    }, [scrollable, data, handleItemsViewed]);
+
+    const onViewableItemsChanged = useRef(({ viewableItems }) => {
+        const visibleItems = viewableItems.map(({ item }) => item).filter(Boolean);
+        handleItemsViewed(visibleItems);
+    }).current;
+
+    const viewabilityConfig = useRef({
+        viewAreaCoveragePercentThreshold: 50
+    }).current;
 
     const defaultEmptyState = useMemo(() => {
         if (type.startsWith("active")) {
@@ -169,6 +210,8 @@ const ActivityList = forwardRef(function ActivityList({
             onEndReachedThreshold={0.5} 
             onScroll={onScroll}
             scrollEventThrottle={scrollEventThrottle}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
         />
     );
 });

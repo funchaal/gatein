@@ -3,6 +3,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
 import { api } from '../services/api';
+import { servicesApi } from '../services/servicesApi';
 
 import authReducer from './slices/authSlice';
 import chatReducer from './slices/chatSlice';
@@ -13,6 +14,7 @@ import locationSlice from './slices/locationSlice';
 
 const rootReducer = combineReducers({
   [api.reducerPath]: api.reducer,
+  [servicesApi.reducerPath]: servicesApi.reducer,
   auth: authReducer,
   chat: chatReducer,
   activity: activityReducer,
@@ -28,7 +30,7 @@ const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
   whitelist: ['companies'], // Apenas dados não-sensíveis
-  blacklist: ['auth', api.reducerPath], // Auth usa Keychain, api lida com cache
+  blacklist: ['auth', api.reducerPath, servicesApi.reducerPath], // Auth usa Keychain, api lida com cache
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -40,7 +42,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
-    }).concat(api.middleware),
+    }).concat(api.middleware, servicesApi.middleware),
 });
 
 export const persistor = persistStore(store);

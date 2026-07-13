@@ -14,7 +14,7 @@ import {
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://10.0.2.2:8000/api/v1/mobile',
+    baseUrl: 'http://192.168.0.4:8000/api/mobile',
     prepareHeaders: async (headers) => {
       const token = await secureStorage.getToken();
       if (token) {
@@ -50,10 +50,10 @@ export const api = createApi({
         try {
           const { data } = await queryFulfilled;
           await secureStorage.saveCredentials(data.token, data.user.tax_id);
-        } catch (err) {}
+        } catch (err) { }
       }
     }),
-    
+
     restoreSession: builder.mutation({
       queryFn: async (_, _api, _extraOptions, fetchWithBQ) => {
         const token = await secureStorage.getToken();
@@ -73,7 +73,7 @@ export const api = createApi({
           if (response.error.status === 'FETCH_ERROR') {
             return { data: { user: null, token, isOffline: true, savedTaxId } };
           }
-          
+
           // Qualquer outro erro HTTP (401, 422, 500...), recusa a sessão
           await secureStorage.clearToken();
           return { error: { status: response.error.status, data: response.error.data, savedTaxId } };
@@ -95,15 +95,31 @@ export const api = createApi({
 
     // --- ACTIVITY ---
     fetchActivityData: builder.query({
-        query: ({ status_filter, limit, offset }) => ({
-            url: '/activities',
-            method: 'GET',
-            params: { status_filter, limit, offset }
-        }),
-        // Desativa a mesclagem automática do RTK Query já que você faz isso manualmente no slice
-        forceRefetch({ currentArg, previousArg }) {
-            return currentArg !== previousArg;
-        }
+      query: ({ status_filter, limit, offset }) => ({
+        url: '/activities',
+        method: 'GET',
+        params: { status_filter, limit, offset }
+      }),
+      // Desativa a mesclagem automática do RTK Query já que você faz isso manualmente no slice
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg !== previousArg;
+      }
+    }),
+
+    logActivityEvents: builder.mutation({
+      query: ({ events }) => ({
+        url: '/activities/log-events',
+        method: 'POST',
+        body: { events }
+      })
+    }),
+
+    logAnnouncementEvents: builder.mutation({
+      query: ({ events }) => ({
+        url: '/announcements/log-events',
+        method: 'POST',
+        body: { events }
+      })
     }),
 
     // --- CHAT ---
@@ -139,7 +155,7 @@ export const api = createApi({
       }),
       invalidatesTags: ['Register']
     }),
-    
+
     sendPhoneValidationCodeRequest: builder.mutation({
       query: ({ tax_id, name, phone }) => ({
         url: '/auth/otp/send',
@@ -148,7 +164,7 @@ export const api = createApi({
       }),
       invalidatesTags: ['Register']
     }),
-    
+
     checkPhoneValidationCodeRequest: builder.mutation({
       query: ({ tax_id, name, phone, code }) => ({
         url: '/auth/otp/verify',
@@ -157,17 +173,17 @@ export const api = createApi({
       }),
       invalidatesTags: ['Register']
     }),
-    
+
     validateDriverLicenseRequest: builder.mutation({
       queryFn: async ({ tax_id, driver_license, from_login }, _api, _extraOptions, fetchWithBQ) => {
         const device = await getDeviceId();
-        
+
         const response = await fetchWithBQ({
           url: '/auth/driver-license/validate',
           method: 'POST',
           body: { tax_id, driver_license, device, from_login: !!from_login }
         });
-        
+
         return response;
       },
       invalidatesTags: ['Register']
@@ -186,12 +202,12 @@ export const api = createApi({
 
         if (response.error) return { error: response.error };
         return { data: response.data.data };
-      }, 
+      },
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           await secureStorage.saveCredentials(data.token, data.user.tax_id);
-        } catch (err) {}
+        } catch (err) { }
       },
       invalidatesTags: ['Register', 'Auth']
     }),
@@ -205,7 +221,7 @@ export const api = createApi({
       invalidatesTags: ['Register']
     }),
 
-    // --- COMPANIES & SERVICES ---
+    // --- COMPANIES & ANNOUNCEMENTS ---
     fetchInitialCompanies: builder.query({
       query: ({ lat, lng }) => ({
         url: '/companies/initial',
@@ -232,18 +248,6 @@ export const api = createApi({
         url: '/companies/search',
         method: 'GET',
         params: { q, lat, lng }
-      })
-    }),
-    fetchCompanyServices: builder.query({
-      query: (company_id) => ({
-        url: `/companies/${company_id}/services`,
-        method: 'GET'
-      })
-    }),
-    generateIntegrationAuthToken: builder.query({
-      query: () => ({
-        url: '/auth-token',
-        method: 'GET'
       })
     }),
 
@@ -331,13 +335,13 @@ export const {
   useLazyFetchActiveAnnouncementsQuery,
   useFetchNearbyCompaniesQuery,
   useLazySearchCompaniesQuery,
-  useFetchCompanyServicesQuery,
-  useLazyGenerateIntegrationAuthTokenQuery,
   useVerifyCurrentPasswordMutation,
   useChangePasswordMutation,
   useForgotPasswordMutation,
   useValidateForgotPasswordCodeMutation,
   useUpdateProfilePhoneMutation,
   useSendEmailValidationCodeMutation,
-  useVerifyEmailValidationCodeMutation
+  useVerifyEmailValidationCodeMutation,
+  useLogActivityEventsMutation,
+  useLogAnnouncementEventsMutation
 } = api;

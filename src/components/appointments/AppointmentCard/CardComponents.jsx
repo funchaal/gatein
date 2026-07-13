@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
 
     // Estilos para o componente Header
     headerContainer: {
-        marginBottom: 4, // margin-bottom: 4px
+        marginBottom: 5, // adjusted to 5px
     },
     headerLabel: {
         fontSize: 14, // font-size: 14px
         color: THEME.slate400, // color
         fontWeight: '500', // font-weight: 500
-        marginBottom: 2, // margin-bottom: 2px
+        marginBottom: 0, // decreased from 2px to 0px
         textTransform: 'capitalize',
     },
     headerValue: {
@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
 
     // Estilos para o componente SubHeader
     subHeaderContainer: {
-        marginTop: 4, // margin-top: 4px
+        marginTop: 5, // adjusted to 5px
     },
     subHeaderLabel: {
         fontSize: 14, // font-size: 14px
         color: THEME.slate400, // color
         fontWeight: '500', // font-weight: 500
-        marginBottom: 2, // margin-bottom: 2px
+        marginBottom: 0, // decreased from 2px to 0px
         textTransform: 'capitalize',
     },
     subHeaderValue: {

@@ -4,10 +4,10 @@ export const getCardConfig = (appointment, terminals) => {
   const terminal = terminals.find(t => t.id === appointment.terminal_id);
   if (!terminal) return null;
 
-  const config = terminal.appointments_layouts.find(c => c.type === appointment.type) 
-                 || terminal.appointments_layouts.find(c => c.type === 'DEFAULT')
-                 || terminal.appointments_layouts[0];
-  
+  const config = terminal.appointments_layouts.find(c => c.type === appointment.type)
+    || terminal.appointments_layouts.find(c => c.type === 'DEFAULT')
+    || terminal.appointments_layouts[0];
+
   return config;
 };
 

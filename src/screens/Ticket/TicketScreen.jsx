@@ -105,16 +105,16 @@ export default function TicketScreen({ route }) {
         return (
             <View style={screenStyles.heroSection}>
                 {headerValue && (
-                    <>
+                    <View style={screenStyles.headerGroup}>
                         {header.label && <Text style={screenStyles.heroLabel}>{header.label}</Text>}
                         <Text style={screenStyles.h1Default}>{headerValue}</Text>
-                    </>
+                    </View>
                 )}
                 {subHeaderValue && (
-                    <>
+                    <View style={screenStyles.subHeaderGroup}>
                         {sub_header.label && <Text style={screenStyles.heroLabel}>{sub_header.label}</Text>}
                         <Text style={screenStyles.h2Default}>{subHeaderValue}</Text>
-                    </>
+                    </View>
                 )}
             </View>
         );

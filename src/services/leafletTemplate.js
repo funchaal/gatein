@@ -26,25 +26,23 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         
         /* Marcador de Destino */
         .destination-marker {
-            width: 30px;
-            height: 30px;
-            background: #DC2626;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            border: 3px solid white;
-            box-shadow: 0 3px 8px rgba(220, 38, 38, 0.4);
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border-radius: 50%;
+            border: 3px solid #2563EB;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .destination-marker::after {
             content: '';
-            position: absolute;
             width: 8px;
             height: 8px;
-            background: white;
+            background: #2563EB;
             border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
         
         /* Marcador do Usuário - Compacto e Preciso */
@@ -71,15 +69,44 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         }
         
         /* Ponteiro Alongado (Seta Direcional) */
-        .direction-pointer {
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-bottom: 16px solid white;
-            position: relative;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
-            margin-bottom: 2px;
+        .direction-pointer-svg {
+            width: 18px;
+            height: 18px;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+        }
+
+        /* Marcador de Empresa/Terminal */
+        .company-marker-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .company-logo-badge {
+            width: 36px;
+            height: 36px;
+            background: #F1F5F9;
+            border-radius: 50%;
+            border: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .company-logo-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #475569;
+        }
+        
+        .company-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -118,7 +145,7 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         // Cria ícone compacto estilo navegação (36px)
         var userIcon = L.divIcon({
             className: 'user-marker-container',
-            html: '<div class="marker-circle"><div class="direction-pointer"></div></div>',
+            html: '<div class="marker-circle"><svg class="direction-pointer-svg" viewBox="0 0 24 24"><path fill="#ffffff" d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" /></svg></div>',
             iconSize: [36, 36],
             iconAnchor: [18, 18]
         });
@@ -134,6 +161,8 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         var alternativeRouteCoords = null;
         var routeStartIndex = 0;
         var activeRouteIndex = 0; 
+        var mainRouteStats = null;
+        var alternativeRouteStats = null;
 
         // Detecta quando usuário arrasta o mapa manualmente
         map.on('dragstart', function() {
@@ -162,7 +191,7 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         map.on('click', function(e) {
             var destLat = e.latlng.lat;
             var destLng = e.latlng.lng;
-            drawRoute(destLat, destLng);
+            drawRoute(destLat, destLng, false);
         });
 
         // Função para calcular distância
@@ -215,7 +244,10 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         }
 
         // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
-        async function drawRoute(destLat, destLng) {
+        async function drawRoute(destLat, destLng, hideDestIcon) {
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ROUTE_CALCULATION_STARTED' }));
+            }
             var userPos = userMarker.getLatLng();
             var url = 'https://router.project-osrm.org/route/v1/driving/' + 
                       userPos.lng + ',' + userPos.lat + ';' + 
@@ -262,15 +294,23 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
                         alternativeRoute._clickArea = alternativeRouteClickArea;
                     }
                     
-                    var destIcon = L.divIcon({
-                        className: 'destination-marker', iconSize: [30, 30], iconAnchor: [15, 30]
-                    });
-                    
-                    destinationMarker = L.marker([destLat, destLng], { icon: destIcon }).addTo(map);
+                    if (!hideDestIcon) {
+                        var destIcon = L.divIcon({
+                            className: 'destination-marker', iconSize: [24, 24], iconAnchor: [12, 12]
+                        });
+                        
+                        destinationMarker = L.marker([destLat, destLng], { icon: destIcon }).addTo(map);
+                    }
                     
                     // PREPARANDO DADOS PARA O REACT NATIVE
                     var mainDistanceKm = (mainRoute.distance / 1000).toFixed(2);
-                    var mainDurationMin = Math.round(mainRoute.duration / 60);
+                    // Multiplica por 1.5 para estimativa de caminhão/tráfego realista
+                    var mainDurationMin = Math.round((mainRoute.duration * 1.5) / 60);
+                    
+                    mainRouteStats = {
+                        distance: mainDistanceKm + ' km',
+                        duration: mainDurationMin + ' min'
+                    };
                     
                     var routeInfoData = {
                         main: {
@@ -286,11 +326,18 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
                     
                     if (data.routes.length > 1) {
                         var altDistanceKm = (data.routes[1].distance / 1000).toFixed(2);
-                        var altDurationMin = Math.round(data.routes[1].duration / 60);
+                        // Multiplica por 1.5 para estimativa de caminhão/tráfego realista
+                        var altDurationMin = Math.round((data.routes[1].duration * 1.5) / 60);
                         routeInfoData.alternative = {
                             distance: altDistanceKm + ' km',
                             duration: altDurationMin + ' min'
                         };
+                        alternativeRouteStats = {
+                            distance: altDistanceKm + ' km',
+                            duration: altDurationMin + ' min'
+                        };
+                    } else {
+                        alternativeRouteStats = null;
                     }
                     
                     window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -304,12 +351,16 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
                     if (alternativeRoute) {
                         bounds.extend(alternativeRoute.getBounds());
                     }
-                    map.fitBounds(bounds, { padding: [50, 50] });
+                    map.fitBounds(bounds, {
+                        paddingTopLeft: [50, 50],
+                        paddingBottomRight: [50, 220]
+                    });
                 }
             } catch (error) {
                 console.error('Erro ao traçar rota:', error);
             }
         }
+        window.drawRoute = drawRoute;
         
         function switchToAlternativeRoute() {
             if (!alternativeRoute || !alternativeRouteCoords) return;
@@ -344,7 +395,9 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
             
             window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'ROUTE_SWITCHED',
-                activeIndex: activeRouteIndex
+                activeIndex: activeRouteIndex,
+                distance: activeRouteIndex === 0 ? mainRouteStats.distance : alternativeRouteStats.distance,
+                duration: activeRouteIndex === 0 ? mainRouteStats.duration : alternativeRouteStats.duration
             }));
         }
         
@@ -420,7 +473,148 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
             requestAnimationFrame(animateRotation);
         }
         
+        var companyMarkers = {};
+        var companyGeofences = {};
+        var companyGeofenceDots = {};
+        var companyLinks = {};
+
+        window.updateCompanyMarkers = function(terminals) {
+            // Remove markers que não estão mais na lista
+            var terminalIds = terminals.map(function(t) { return t.id; });
+            Object.keys(companyMarkers).forEach(function(id) {
+                if (terminalIds.indexOf(id) === -1) {
+                    map.removeLayer(companyMarkers[id]);
+                    delete companyMarkers[id];
+                }
+            });
+            Object.keys(companyGeofences).forEach(function(id) {
+                if (terminalIds.indexOf(id) === -1) {
+                    map.removeLayer(companyGeofences[id]);
+                    delete companyGeofences[id];
+                }
+            });
+            Object.keys(companyGeofenceDots).forEach(function(id) {
+                if (terminalIds.indexOf(id) === -1) {
+                    map.removeLayer(companyGeofenceDots[id]);
+                    delete companyGeofenceDots[id];
+                }
+            });
+            Object.keys(companyLinks).forEach(function(id) {
+                if (terminalIds.indexOf(id) === -1) {
+                    map.removeLayer(companyLinks[id]);
+                    delete companyLinks[id];
+                }
+            });
+
+            // Adiciona ou atualiza marcadores
+            terminals.forEach(function(terminal) {
+                var addressLat = terminal.addressLat;
+                var addressLng = terminal.addressLng;
+                var geofenceLat = terminal.geofenceLat;
+                var geofenceLng = terminal.geofenceLng;
+                var radius = terminal.geofenceRadius;
+                var logoUrl = terminal.logo_url;
+                var name = terminal.name || 'Terminal';
+                var initials = name.substring(0, 2).toUpperCase();
+
+                var logoHtml = '';
+                if (logoUrl) {
+                    logoHtml = '<img class="company-logo-img" src="' + logoUrl + '" alt="' + name + '" />';
+                } else {
+                    logoHtml = '<span class="company-logo-text">' + initials + '</span>';
+                }
+
+                var htmlContent = '<div class="company-logo-badge">' + logoHtml + '</div>';
+
+                var companyIcon = L.divIcon({
+                    className: 'company-marker-container',
+                    html: htmlContent,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                });
+
+                // 1. Desenha/atualiza o marcador principal no endereço físico
+                if (companyMarkers[terminal.id]) {
+                    companyMarkers[terminal.id].setLatLng([addressLat, addressLng]);
+                    companyMarkers[terminal.id].setIcon(companyIcon);
+                } else {
+                    companyMarkers[terminal.id] = L.marker([addressLat, addressLng], { icon: companyIcon }).addTo(map);
+                    
+                    companyMarkers[terminal.id].on('click', function(e) {
+                        L.DomEvent.stopPropagation(e);
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'COMPANY_SELECTED',
+                            companyId: terminal.id
+                        }));
+                    });
+                }
+
+                // 2. Desenha a geocerca (círculo) ao redor do centro da geofence com preenchimento mais transparente
+                if (radius > 0) {
+                    if (companyGeofences[terminal.id]) {
+                        companyGeofences[terminal.id].setLatLng([geofenceLat, geofenceLng]);
+                        companyGeofences[terminal.id].setRadius(radius);
+                    } else {
+                        companyGeofences[terminal.id] = L.circle([geofenceLat, geofenceLng], {
+                            color: '#f97316',
+                            fillColor: '#f97316',
+                            fillOpacity: 0.03,
+                            radius: radius,
+                            weight: 1.5,
+                            dashArray: '5, 5',
+                            interactive: false
+                        }).addTo(map);
+                    }
+                } else {
+                    if (companyGeofences[terminal.id]) {
+                        map.removeLayer(companyGeofences[terminal.id]);
+                        delete companyGeofences[terminal.id];
+                    }
+                }
+
+                // 3. Desenha um ponto (circleMarker) no centro da geofence
+                if (companyGeofenceDots[terminal.id]) {
+                    companyGeofenceDots[terminal.id].setLatLng([geofenceLat, geofenceLng]);
+                } else {
+                    companyGeofenceDots[terminal.id] = L.circleMarker([geofenceLat, geofenceLng], {
+                        radius: 5,
+                        color: '#f97316',
+                        fillColor: '#f97316',
+                        fillOpacity: 0.8,
+                        weight: 1,
+                        interactive: false
+                    }).addTo(map);
+                }
+
+                // 4. Desenha a linha ligando o endereço ao geofence center
+                var lineCoords = [[addressLat, addressLng], [geofenceLat, geofenceLng]];
+                if (companyLinks[terminal.id]) {
+                    companyLinks[terminal.id].setLatLngs(lineCoords);
+                } else {
+                    companyLinks[terminal.id] = L.polyline(lineCoords, {
+                        color: '#f97316',
+                        weight: 2,
+                        dashArray: '3, 6',
+                        opacity: 0.6,
+                        interactive: false
+                    }).addTo(map);
+                }
+            });
+        };
+
         animateRotation();
+
+        // Avisa o React Native que o mapa e os scripts estão carregados e prontos
+        if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_INITIALIZED' }));
+        } else {
+            var checkInterval = setInterval(function() {
+                if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_INITIALIZED' }));
+                    clearInterval(checkInterval);
+                }
+            }, 50);
+        }
     </script>
 </body>
 </html>

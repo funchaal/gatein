@@ -4,7 +4,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SvgUri } from 'react-native-svg';
-import { useFetchCompanyServicesQuery, useLazyGenerateIntegrationAuthTokenQuery } from '../../services/api';
+import { useFetchCompanyServicesQuery, useLazyGenerateIntegrationAuthTokenQuery } from '../../services/servicesApi';
 import { selectTerminalById, selectTruckingCompanyById } from '../../store/slices/companiesSlice';
 import ListItem from '../../components/ui/ListItem';
 import ListSeparator from '../../components/ui/ListSeparator';

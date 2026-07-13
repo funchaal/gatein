@@ -37,7 +37,6 @@ export default function ServiceWebViewScreen() {
 
     const INJECTED_JAVASCRIPT = `
         (function() {
-            window.localStorage.setItem('token', '${token || ''}');
             window.localStorage.setItem('auth_token', '${token || ''}'); // Commonly used keys
         })();
         true;

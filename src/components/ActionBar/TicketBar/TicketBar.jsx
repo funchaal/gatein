@@ -19,7 +19,7 @@ const getHeader = (appt) =>
     `#${get(appt, ['booking_number', 'Appt', 'id']) || appt.id}`;
 
 const getSubHeader = (appt) =>
-    get(appt, ['operation_type', 'tipo_operacao', 'tipo']) ||
+    get(appt, ['tipo_operacao', 'tipo']) ||
     get(appt, ['produto', 'product']) ||
     get(appt, 'driver_name') || // Atualizado para ler o custom_data
     '—';

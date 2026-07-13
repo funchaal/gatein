@@ -6,12 +6,30 @@ import { formatDate, resolveStatusColor, getValue } from './utils';
 import { styles } from './styles';
 import { Row, Header, SubHeader } from './CardComponents';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useLogActivityEventsMutation } from '../../../services/api';
+import { trackClicked } from '../../../utils/activityTracker';
 
 export default function AppointmentCard({ item, config, company, hideRows }) {
     const dispatch = useDispatch();
+    const [logEvents] = useLogActivityEventsMutation();
 
     const handlePress = () => {
         dispatch(selectAppointment({ appointment: item, config }));
+        
+        if (trackClicked(item.id)) {
+            logEvents({
+                events: [
+                    {
+                        activity_type: item.type,
+                        activity_id: item.id,
+                        event: 'clicked',
+                        message: `${item.type === 'trip' ? 'Viagem' : 'Agendamento'} clicado no app móvel.`
+                    }
+                ]
+            }).unwrap().catch(err => {
+                console.error("Erro ao enviar log de clique:", err);
+            });
+        }
     };
 
     const status = item?.status || 'Desconhecido';
@@ -22,8 +40,8 @@ export default function AppointmentCard({ item, config, company, hideRows }) {
     const { header, sub_header, body_rows } = config?.card_layout || {};
 
     const isTrip = item?.type === 'trip';
-    const origin = isTrip ? (getValue(item, 'origin_city') || item?.custom_data?.origin_city || 'Origem') : '';
-    const destination = isTrip ? (getValue(item, 'destination_city') || item?.custom_data?.destination_city || 'Destino') : '';
+    const origin = isTrip ? (item?.from || getValue(item, 'origin_city') || item?.custom_data?.origin_city || 'Origem') : '';
+    const destination = isTrip ? (item?.to || getValue(item, 'destination_city') || item?.custom_data?.destination_city || 'Destino') : '';
 
     return (
         <Pressable 

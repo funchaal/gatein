@@ -64,7 +64,15 @@ export const screenStyles = StyleSheet.create({
         paddingVertical: 20,
         paddingTop: 8,
         backgroundColor: 'white',
-        gap: 2,
+        gap: 10,
+    },
+    headerGroup: {
+        alignSelf: 'stretch',
+        gap: 0,
+    },
+    subHeaderGroup: {
+        alignSelf: 'stretch',
+        gap: 0,
     },
     heroLabel: {
         fontSize: 16,

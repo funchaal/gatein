@@ -19,4 +19,8 @@ export const styles = StyleSheet.create({
         marginTop: 10, 
         color: '#666' 
     },
+    errorText: {
+        marginTop: 10,
+        color: '#EF4444'
+    },
 });

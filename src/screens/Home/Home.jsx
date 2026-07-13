@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, ScrollView, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import ActivityList from "../../components/appointments/ActivityList";
 import HomeTopBar from "./components/HomeTopBar";
@@ -19,25 +19,25 @@ export default function HomeScreen() {
         }
     }, [emailPromptRequired, navigation]);
 
+    const renderHomeHeader = () => (
+        <View style={styles.headerContainer}>
+            <HomeTopBar />
+            <AnnouncementsCarousel />
+            <HomeDivider />
+            <ActionButtons />
+            <Text style={styles.sectionTitle}>Próximos agendamentos</Text>
+        </View>
+    );
+
     return (
         <ScreenWrapper noPadding={true}>
-            <ScrollView 
-                showsVerticalScrollIndicator={true} 
+            <ActivityList 
+                type="active-all" 
+                padded={true}
+                scrollable={true}
+                ListHeaderComponent={renderHomeHeader()}
                 contentContainerStyle={styles.scrollContent}
-            >
-                <View style={styles.headerContainer}>
-                    <HomeTopBar />
-                    <AnnouncementsCarousel />
-                    <HomeDivider />
-                    <ActionButtons />
-                    <Text style={styles.sectionTitle}>Próximos agendamentos</Text>
-                </View>
-                <ActivityList 
-                    type="active-all" 
-                    padded={true}
-                    scrollable={false}
-                />
-            </ScrollView>
+            />
         </ScreenWrapper>
     );
 }

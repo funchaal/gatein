@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
-import { COLORS } from '../../constants/colors';
 import { isPlaceholderUrl } from '../../utils/tools';
 
 export default function ListItem({ onPress, title, titleStyle, subtitles = [], rightElement, logoUrl, leftElement, hideLeft }) {
     const [logoError, setLogoError] = useState(false);
-    const initial = title ? title.charAt(0).toUpperCase() : '';
+    const initial = title ? title.substring(0, 2).toUpperCase() : '';
 
     // Reset error state if the URL changes (critical for FlatList recycling)
     useEffect(() => {
