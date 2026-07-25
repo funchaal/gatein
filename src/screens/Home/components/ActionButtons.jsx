@@ -2,15 +2,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 
 const ACTIONS = [
   {
-    id: 'appointments',
-    title: 'Agendamentos',
-    icon: 'calendar',
-    action: (nav) => nav.navigate('Appointments'),
+    id: 'tickets',
+    title: 'Tickets',
+    icon: 'ticket-confirmation-outline',
+    action: (nav) => nav.navigate('TicketsList'),
   },
   {
     id: 'services',
@@ -55,7 +56,11 @@ function NormalButton({ item }) {
   return (
     <TouchableOpacity style={[styles.actionBtn, styles.normalBtn]} onPress={() => item.action(navigation)}>
       <View style={styles.iconWrap}>
-        <Icon name={item.icon} size={22} color="#F97316" />
+        {item.id === 'tickets' ? (
+          <IconMC name={item.icon} size={22} color="#F97316" />
+        ) : (
+          <Icon name={item.icon} size={22} color="#F97316" />
+        )}
       </View>
       <Text style={styles.normalLabel}>{item.title}</Text>
     </TouchableOpacity>
@@ -78,7 +83,8 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     gap: 7,
-    paddingBottom: 18,
+    marginTop: 18,
+    paddingBottom: 8,
     backgroundColor: 'white',
   },
   actionBtn: {

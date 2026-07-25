@@ -1,13 +1,46 @@
+export const STATUS_LABELS_PT_BR = {
+    'ACTIVE': 'Agendado',
+    'AGENDADO': 'Agendado',
+    'CHECKED-IN': 'No Pátio',
+    'CHECKED_IN': 'No Pátio',
+    'NO PÁTIO': 'No Pátio',
+    'ON_GOING': 'Em Andamento',
+    'EM ANDAMENTO': 'Em Andamento',
+    'PAUSED': 'Pausado',
+    'PAUSADO': 'Pausado',
+    'COMPLETED': 'Concluído',
+    'CONCLUÍDO': 'Concluído',
+    'FINALIZADO': 'Finalizado',
+    'CANCELLED': 'Cancelado',
+    'CANCELADO': 'Cancelado',
+    'DEACTIVATED': 'Desativado',
+    'DESATIVADO': 'Desativado',
+    'OVERDUE': 'Atrasado',
+    'EXPIRED': 'Atrasado',
+    'ATRASADO': 'Atrasado',
+    'PLANNED': 'Planejado',
+};
+
+export const translateStatus = (status) => {
+    if (!status) return 'Desconhecido';
+    const safeStatus = status.toString().toUpperCase();
+    return STATUS_LABELS_PT_BR[safeStatus] || status;
+};
+
 export const getStatusColor = (status) => {
     const safeStatus = (status || '').toString().toUpperCase();
     switch (safeStatus) {
         case 'AGENDADO':
-        case 'SCHEDULED':
+        case 'ACTIVE':
+        case 'PLANNED':
             return '#3B82F6'; // Blue
         case 'EM ANDAMENTO':
-        case 'IN_PROGRESS':
+        case 'ON_GOING':
         case 'NO PÁTIO':
+        case 'CHECKED-IN':
         case 'CHECKED_IN':
+        case 'PAUSED':
+        case 'PAUSADO':
             return '#EAB308'; // Yellow/Orange
         case 'CONCLUÍDO':
         case 'COMPLETED':
@@ -16,6 +49,11 @@ export const getStatusColor = (status) => {
         case 'EXPIRADO':
         case 'EXPIRED':
         case 'ATRASADO':
+        case 'OVERDUE':
+        case 'DEACTIVATED':
+        case 'DESATIVADO':
+        case 'CANCELLED':
+        case 'CANCELADO':
             return '#EF4444'; // Red
         default:
             return '#64748B'; // Slate

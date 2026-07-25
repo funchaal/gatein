@@ -278,7 +278,7 @@ export default function TicketScreen({ route }) {
     };
 
     const config = getCardConfig(appointment);
-    const displayTime = appointment ? formatDate(get(appointment, ['schedule_start_time', 'Start_Time', 'start_time', 'scheduled_time'])) : '';
+    const displayTime = appointment ? formatDate(get(appointment, ['window_start', 'Start_Time', 'start_time', 'scheduled_time'])) : '';
 
     const renderCardHeader = () => {
         if (!config?.card_layout) return null;

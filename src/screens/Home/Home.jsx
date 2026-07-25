@@ -4,7 +4,6 @@ import ScreenWrapper from "../../components/common/ScreenWrapper";
 import ActivityList from "../../components/appointments/ActivityList";
 import HomeTopBar from "./components/HomeTopBar";
 import AnnouncementsCarousel from "./components/AnnouncementsCarousel";
-import HomeDivider from "./components/HomeDivider";
 import ActionButtons from "./components/ActionButtons";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -22,10 +21,9 @@ export default function HomeScreen() {
     const renderHomeHeader = () => (
         <View style={styles.headerContainer}>
             <HomeTopBar />
-            <AnnouncementsCarousel />
-            <HomeDivider />
             <ActionButtons />
-            <Text style={styles.sectionTitle}>Próximos agendamentos</Text>
+            <AnnouncementsCarousel />
+            <Text style={styles.sectionTitle}>Próximas operações</Text>
         </View>
     );
 
@@ -51,7 +49,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1a1a2e',
         paddingTop: 16,
-        paddingBottom: 10,
+        paddingBottom: 16,
         backgroundColor: 'white',
     },
     headerContainer: {

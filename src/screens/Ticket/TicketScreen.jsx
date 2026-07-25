@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, Animated, ScrollView, StatusBar, Alert } from 'react-native';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { View, Text, Animated, ScrollView, StatusBar, TouchableOpacity, StyleSheet } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import Share from 'react-native-share';
 import { useSelector } from 'react-redux';
@@ -73,6 +73,33 @@ export default function TicketScreen({ route }) {
     const terminals = useSelector(selectAllTerminals);
     const layouts = useSelector(selectAllLayouts);
 
+    const sortedTickets = useMemo(() => {
+        if (!appointment?.tickets) return [];
+        return [...appointment.tickets].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }, [appointment?.tickets]);
+
+    const [activeTicketIndex, setActiveTicketIndex] = useState(() => {
+        if (ticket && sortedTickets.length > 0) {
+            const idx = sortedTickets.findIndex(t => t.id === ticket.id);
+            return idx !== -1 ? idx : 0;
+        }
+        return 0;
+    });
+
+    const activeTicket = sortedTickets.length > 0 ? sortedTickets[activeTicketIndex] : ticket;
+
+    const resolvedLayout = useMemo(() => {
+        if (!activeTicket) return null;
+        if (activeTicket.layout_ref) {
+            const layoutKey = `${appointment.terminal_id}_${activeTicket.layout_ref}`;
+            const layoutObj = layouts?.ticket?.[layoutKey] || layouts?.ticket?.[activeTicket.layout_ref];
+            if (layoutObj) {
+                return layoutObj.layout?.elements || layoutObj.elements || layoutObj;
+            }
+        }
+        return ticket_layout?.layout?.elements || ticket_layout?.elements || ticket_layout;
+    }, [activeTicket, appointment?.terminal_id, layouts, ticket_layout]);
+
     const getCardConfig = (appt) => {
         if (!appt) return null;
 
@@ -94,7 +121,7 @@ export default function TicketScreen({ route }) {
     };
 
     const config = getCardConfig(appointment);
-    const displayTime = appointment ? formatDate(get(appointment, ['schedule_start_time', 'Start_Time', 'start_time', 'scheduled_time']), true) : '';
+    const displayTime = appointment ? formatDate(get(appointment, ['window_start', 'Start_Time', 'start_time', 'scheduled_time']), true) : '';
 
     const renderCardHeader = () => {
         if (!config?.card_layout) return null;
@@ -121,16 +148,18 @@ export default function TicketScreen({ route }) {
     };
 
     useEffect(() => {
-        if (ticket) {
+        if (activeTicket) {
+            fadeAnim.setValue(0);
+            slideAnim.setValue(15);
             Animated.parallel([
-                Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+                Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
                 Animated.spring(slideAnim, { toValue: 0, damping: 18, stiffness: 120, useNativeDriver: true }),
             ]).start();
         } else {
             fadeAnim.setValue(0);
             slideAnim.setValue(30);
         }
-    }, [ticket, fadeAnim, slideAnim]);
+    }, [activeTicket, fadeAnim, slideAnim]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -153,7 +182,7 @@ export default function TicketScreen({ route }) {
         });
     }, [navigation]);
 
-    if (!appointment || !ticket) {
+    if (!appointment || !activeTicket) {
         return (
             <View style={screenStyles.empty}>
                 <View style={screenStyles.emptyIconWrapper}>
@@ -166,13 +195,13 @@ export default function TicketScreen({ route }) {
     }
 
     let content = {};
-    if (ticket) {
-        let rawContent = ticket;
-        if (typeof ticket === 'string') {
+    if (activeTicket) {
+        let rawContent = activeTicket;
+        if (typeof activeTicket === 'string') {
             try {
-                rawContent = JSON.parse(ticket);
+                rawContent = JSON.parse(activeTicket);
             } catch (e) {
-                rawContent = ticket;
+                rawContent = activeTicket;
             }
         }
         
@@ -207,38 +236,67 @@ export default function TicketScreen({ route }) {
     return (
         <Animated.View style={[screenStyles.root, { opacity: fadeAnim }]}>
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-
+ 
             <ScrollView
                 style={screenStyles.scroll}
                 contentContainerStyle={screenStyles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
+                {sortedTickets.length > 1 && (
+                    <View style={customStyles.tagsOuterContainer}>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={customStyles.tagsScroll}
+                        >
+                            {sortedTickets.map((t, idx) => (
+                                <TouchableOpacity
+                                    key={t.id}
+                                    activeOpacity={0.8}
+                                    style={[
+                                        customStyles.tagButton,
+                                        activeTicketIndex === idx && customStyles.tagButtonActive
+                                    ]}
+                                    onPress={() => setActiveTicketIndex(idx)}
+                                >
+                                    <Text style={[
+                                        customStyles.tagButtonText,
+                                        activeTicketIndex === idx && customStyles.tagButtonTextActive
+                                    ]}>
+                                        Ticket {idx + 1}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+
                 <ViewShot ref={viewShotRef} options={{ format: "png", quality: 0.9 }} style={{ backgroundColor: '#ffffff' }}>
                     <View style={screenStyles.pageHeader}>
                         <Text style={screenStyles.pageTitle}>Ticket de Acesso</Text>
                     </View>
-
+ 
                     {/* Top Info Container */}
                     <View style={screenStyles.topInfoContainer}>
-
+ 
                         <View style={screenStyles.bookingStrip}>
                             <Text style={screenStyles.bookingLabel}>Agendamento</Text>
                             <Text style={screenStyles.bookingId}>#{appointment.ref || '—'}</Text>
                         </View>
                     </View>
-
+ 
                     {renderCardHeader()}
                     <View style={screenStyles.timeContainer}>
                         <Icon name="calendar-clock-outline" size={18} color={THEME.slate600} />
                         <Text style={screenStyles.displayTime}>{displayTime}</Text>
                     </View>
-
+ 
                     {/* Perfuração superior */}
                     <TicketPerforation />
-
+ 
                     {/* Corpo do ticket */}
                     <View style={screenStyles.ticketBody}>
-                        {(ticket_layout || []).map((componentProps, index) => {
+                        {(resolvedLayout || []).map((componentProps, index) => {
                             const Component = ELEMENT_MAP[componentProps.element];
                             if (!Component) return null;
                             return (
@@ -249,19 +307,19 @@ export default function TicketScreen({ route }) {
                                 />
                             );
                         })}
-
-                        {ticket.created_at && (
+ 
+                        {activeTicket.created_at && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginTop: 16, paddingBottom: 8 }}>
                                 <Icon name="information-outline" size={12} color="#94A3B8" />
                                 <Text style={{ fontSize: 11, color: '#94A3B8', fontWeight: '600', marginLeft: 4 }}>
-                                    ticket gerado em {formatDate(ticket.created_at, true)}
+                                    ticket gerado em {formatDate(activeTicket.created_at, true)}
                                 </Text>
                             </View>
                         )}
                     </View>
                 </ViewShot>
             </ScrollView>
-
+ 
             <View style={[screenStyles.footer, { paddingHorizontal: 24, paddingBottom: Math.max(insets.bottom, 20) }]}>
                 <MainAsyncButton
                     title="Compartilhar"
@@ -271,3 +329,37 @@ export default function TicketScreen({ route }) {
         </Animated.View>
     );
 }
+
+const customStyles = StyleSheet.create({
+    tagsOuterContainer: {
+        marginBottom: 16,
+        paddingHorizontal: 24,
+        marginTop: 10,
+    },
+    tagsScroll: {
+        flexDirection: 'row',
+        gap: 8,
+        alignItems: 'center',
+        paddingVertical: 4,
+    },
+    tagButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: '#F1F5F9',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    tagButtonActive: {
+        backgroundColor: '#F97316',
+        borderColor: '#F97316',
+    },
+    tagButtonText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#64748B',
+    },
+    tagButtonTextActive: {
+        color: '#FFFFFF',
+    },
+});

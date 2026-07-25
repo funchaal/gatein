@@ -21,7 +21,7 @@ const YEARS = Array.from({ length: 7 }, (_, i) => currentYear - 3 + i);
 const TAB_TYPE_MAP = ["history-all", "history-appointments", "history-trips"];
 
 function getAppointmentDate(appt) {
-    const raw = appt?.schedule_start_time || appt?.Start_Time || appt?.start_time || appt?.scheduled_time;
+    const raw = appt?.window_start || appt?.Start_Time || appt?.start_time || appt?.scheduled_time;
     if (!raw) return null;
     try { return new Date(raw); } catch { return null; }
 }

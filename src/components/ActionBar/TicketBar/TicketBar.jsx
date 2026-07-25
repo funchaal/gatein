@@ -26,11 +26,12 @@ const getSubHeader = (appt) =>
 
 const getDetail = (appt) =>
     get(appt, 'plate') || // Atualizado para ler o custom_data
-    get(appt, ['placa', 'vehicle_plate', 'Plate']) || '';
+    get(appt, ['placa', 'license_plate', 'Plate']) || '';
 
 const STATUS_COLORS = {
-    CHECKED_IN: { bg: '#D1FAE5', text: '#065F46', label: 'Check-in' },
-    IN_PROGRESS: { bg: '#DBEAFE', text: '#1E40AF', label: 'Em progresso' },
+    'CHECKED-IN': { bg: '#FEF9C3', text: '#854D0E', label: 'Aguardando Atendimento' },
+    ON_GOING: { bg: '#DBEAFE', text: '#1E40AF', label: 'Em progresso' },
+    COMPLETED: { bg: '#DCFCE7', text: '#166534', label: 'Atendimento Concluído' }
 };
 
 // ─── picker modal ─────────────────────────────────────────────────────────────

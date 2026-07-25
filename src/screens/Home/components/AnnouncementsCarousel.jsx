@@ -9,9 +9,9 @@ import {
   Pressable,
   ActivityIndicator,
   Animated,
+  Linking,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useLazyFetchActiveAnnouncementsQuery, useLogAnnouncementEventsMutation } from '../../../services/api';
 import { COLORS } from '../../../constants/colors';
@@ -19,7 +19,7 @@ import { trackAnnouncementViewed } from '../../../utils/activityTracker';
 
 const { width: windowWidth } = Dimensions.get('window');
 const CARD_WIDTH = windowWidth - 40;
-const CARD_HEIGHT = CARD_WIDTH * 9 / 18;
+const CARD_HEIGHT = CARD_WIDTH * 9 / 14;
 
 const SLIDE_DISTANCE = 12;
 const EXIT_DURATION  = 150;
@@ -91,7 +91,7 @@ function useFooterAnimation() {
       runningAnim.current = enterAnim;
       enterAnim.start(() => { runningAnim.current = null; });
     });
-  }, []);
+  }, [branchO, branchY, logoO, logoY, nameO, nameY]);
 
   return { logoY, logoO, nameY, nameO, branchY, branchO, animate };
 }
@@ -111,12 +111,55 @@ export default function AnnouncementsCarousel() {
     }
   }, [userCoords, trigger]);
 
-  const announcements = useMemo(() => response?.data || [], [response?.data]);
+  const announcements = useMemo(() => {
+    const raw = response?.data || [];
+    if (raw.length === 0) return [];
+    
+    // Group by company_id
+    const groups = {};
+    raw.forEach((ann) => {
+      if (!groups[ann.company_id]) {
+        groups[ann.company_id] = [];
+      }
+      groups[ann.company_id].push(ann);
+    });
+
+    // We preserve company ordering by the order of appearance in the raw data
+    const companyOrder = [];
+    raw.forEach((ann) => {
+      if (!companyOrder.includes(ann.company_id)) {
+        companyOrder.push(ann.company_id);
+      }
+    });
+
+    const grouped = [];
+    companyOrder.forEach((cid) => {
+      grouped.push(...groups[cid]);
+    });
+    return grouped;
+  }, [response?.data]);
 
   // activeIndexRef  → índice real do carousel (para o auto-play, sem stale closure)
   // displayedIndex  → índice do conteúdo visível no footer (muda só no meio da animação)
   const activeIndexRef   = useRef(0);
   const [displayedIndex, setDisplayedIndex] = useState(0);
+
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  const startProgressAnimation = useCallback(() => {
+    progressAnim.setValue(0);
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: 5000,
+      useNativeDriver: false,
+    }).start();
+  }, [progressAnim]);
+
+  useEffect(() => {
+    if (announcements.length > 0) {
+      startProgressAnimation();
+    }
+  }, [displayedIndex, announcements.length, startProgressAnimation]);
 
   const [logAnnouncementEvents] = useLogAnnouncementEventsMutation();
 
@@ -179,7 +222,7 @@ export default function AnnouncementsCarousel() {
   useEffect(() => {
     startAutoPlay();
     return stopAutoPlay;
-  }, [announcements.length]);
+  }, [announcements.length, startAutoPlay, stopAutoPlay]);
 
   // Toque nos logos da fila
   const scrollToIndex = useCallback((index) => {
@@ -210,6 +253,18 @@ export default function AnnouncementsCarousel() {
     startAutoPlay();
   }, [startAutoPlay]);
 
+  const displayedAnn = announcements[displayedIndex];
+
+  const companyAnnouncements = useMemo(() => {
+    if (!displayedAnn) return [];
+    return announcements.filter(a => a.company_id === displayedAnn.company_id);
+  }, [displayedAnn, announcements]);
+
+  const activeCompanyAnnIndex = useMemo(() => {
+    if (!displayedAnn) return 0;
+    return companyAnnouncements.findIndex(a => a.id === displayedAnn.id);
+  }, [displayedAnn, companyAnnouncements]);
+
   // ── Early returns ──
   if (isLoading && announcements.length === 0) {
     return (
@@ -233,8 +288,7 @@ export default function AnnouncementsCarousel() {
     );
   }
 
-  // Footer usa displayedIndex (conteúdo antigo durante a saída, novo durante a entrada)
-  const displayedAnn = announcements[displayedIndex];
+
 
   // Fila de próximos baseada no displayedIndex para consistência visual
   const nextLogos = [];
@@ -275,7 +329,15 @@ export default function AnnouncementsCarousel() {
             const yOffset   = item.image_position?.y ?? 50;
             const topOffset = -(yOffset / 100) * (CARD_HEIGHT * 0.8);
 
-            return (
+            const handlePress = () => {
+              if (item.url) {
+                Linking.openURL(item.url).catch((err) => {
+                  console.error("Failed to open URL:", err);
+                });
+              }
+            };
+
+            const CardView = (
               <View style={styles.cardContainer}>
                 {item.image_url ? (
                   <Image
@@ -288,20 +350,48 @@ export default function AnnouncementsCarousel() {
                     <Icon name="image" size={32} color="#cbd5e1" />
                   </View>
                 )}
-                <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.85)']}
-                  locations={[0, 0.4, 1.0]}
-                  style={styles.gradient}
-                />
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-                  {item.subtitle   ? <Text style={styles.cardSubtitle}   numberOfLines={1}>{item.subtitle}</Text>   : null}
-                  {item.description? <Text style={styles.cardDescription} numberOfLines={2}>{item.description}</Text>: null}
-                </View>
               </View>
             );
+
+            if (item.url) {
+              return (
+                <Pressable onPress={handlePress}>
+                  {CardView}
+                </Pressable>
+              );
+            }
+            return CardView;
           }}
         />
+
+        {/* Segmented Progress Bar */}
+        {companyAnnouncements.length > 0 && (
+          <View style={styles.progressBarContainer}>
+            {companyAnnouncements.map((_, idx) => {
+              const widthInterpolate = progressAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+              });
+
+              return (
+                <View key={idx} style={styles.progressSegmentTrack}>
+                  <Animated.View
+                    style={[
+                      styles.progressSegmentFill,
+                      {
+                        width: idx < activeCompanyAnnIndex
+                          ? '100%'
+                          : idx === activeCompanyAnnIndex
+                            ? widthInterpolate
+                            : '0%'
+                      }
+                    ]}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        )}
       </View>
 
       {/* Footer animado */}
@@ -579,5 +669,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#64748B',
     marginTop: 1,
+  },
+  progressBarContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    height: 4,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressSegmentTrack: {
+    flex: 1,
+    height: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    borderRadius: 2.5,
+    marginHorizontal: 2.5,
+    overflow: 'hidden',
+  },
+  progressSegmentFill: {
+    height: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 2,
   },
 });

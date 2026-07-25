@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { secureStorage } from './secureStorage';
 import { getDeviceId } from './deviceInfo';
 import uuid from 'react-native-uuid';
+import { API_BASE_URL, API_BASE_URL_DEV, PROD, CHECKIN_TIMEOUT } from '@env';
 import {
   activityAPICall,
   chatsAPICall,
@@ -11,25 +12,34 @@ import {
   getDocument
 } from './mockData';
 
+// Resolve a URL base de acordo com o ambiente
+// PROD=true  → usa API_BASE_URL  (produção)
+// PROD=false → usa API_BASE_URL_DEV (staging/dev local)
+const IS_PROD = PROD === 'true' || PROD === 'True' || PROD === '1';
+const resolvedBaseUrl = IS_PROD ? API_BASE_URL : API_BASE_URL_DEV;
+
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://192.168.0.4:8000/api/mobile',
+    baseUrl: resolvedBaseUrl,
+
     prepareHeaders: async (headers) => {
       const token = await secureStorage.getToken();
+      console.log({ token })
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
 
       // 2. Injeta o Device ID
       const deviceId = await getDeviceId();
+      console.log({ deviceId })
       if (deviceId) {
         headers.set('X-Device-ID', deviceId); // O nome tem que bater com o alias do FastAPI
       }
       return headers;
     },
   }),
-  tagTypes: ['Activity', 'Chat', 'Document', 'Register', 'Auth'],
+  tagTypes: ['Activity', 'Chat', 'Document', 'Register', 'Auth', 'NotificationHistory'],
   endpoints: (builder) => ({
     // --- AUTH ---
     login: builder.mutation({
@@ -88,7 +98,7 @@ export const api = createApi({
       query: (terminal_id) => ({
         url: `/checkin/${terminal_id}`,
         method: 'POST',
-        timeout: process.env.CHECKIN_TIMEOUT ? parseInt(process.env.CHECKIN_TIMEOUT, 10) : 30000,
+        timeout: CHECKIN_TIMEOUT ? parseInt(CHECKIN_TIMEOUT, 10) : 30000,
       }),
       // invalidatesTags: ['Activity'],
     }),
@@ -100,6 +110,7 @@ export const api = createApi({
         method: 'GET',
         params: { status_filter, limit, offset }
       }),
+      providesTags: ['Activity'],
       // Desativa a mesclagem automática do RTK Query já que você faz isso manualmente no slice
       forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
@@ -312,6 +323,62 @@ export const api = createApi({
         body: { email, code }
       })
     }),
+
+    // --- NOTIFICATIONS (FCM TOKENS) ---
+
+    /**
+     * Registra ou atualiza o FCM token do dispositivo no servidor.
+     * Deve ser chamado toda vez que o app abre e o usuário está logado.
+     * O servidor faz upsert: se o token já existe, só atualiza last_updated.
+     */
+    registerFCMToken: builder.mutation({
+      query: ({ fcm_token, device_os }) => ({
+        url: '/notifications/token',
+        method: 'POST',
+        body: { fcm_token, device_os },
+      }),
+    }),
+
+    /**
+     * Remove o FCM token do dispositivo ao fazer logout.
+     * Garante que o dispositivo não receba mais notificações após a saída.
+     */
+    removeFCMToken: builder.mutation({
+      query: ({ fcm_token }) => ({
+        url: '/notifications/token',
+        method: 'DELETE',
+        body: { fcm_token },
+      }),
+    }),
+
+    /**
+     * Busca o histórico de notificações enviadas ao usuário nos últimos 7 dias.
+     */
+    fetchNotificationHistory: builder.query({
+      query: () => ({
+        url: '/notifications',
+        method: 'GET',
+      }),
+      providesTags: ['NotificationHistory'],
+    }),
+
+    // --- CHECKIN CANCEL ---
+
+    /**
+     * Cancela um check-in feito, revertendo o agendamento para SCHEDULED.
+     * Registra o motivo no log do agendamento e notifica o motorista.
+     *
+     * @param {string} appointmentId - UUID do agendamento
+     * @param {string} reason - Motivo do cancelamento
+     */
+    cancelCheckin: builder.mutation({
+      query: ({ appointmentId, reason }) => ({
+        url: `/checkin/cancel/${appointmentId}`,
+        method: 'POST',
+        body: { reason },
+      }),
+      invalidatesTags: ['Activity'],
+    }),
   })
 });
 
@@ -343,5 +410,11 @@ export const {
   useSendEmailValidationCodeMutation,
   useVerifyEmailValidationCodeMutation,
   useLogActivityEventsMutation,
-  useLogAnnouncementEventsMutation
+  useLogAnnouncementEventsMutation,
+  // Notificações FCM
+  useRegisterFCMTokenMutation,
+  useRemoveFCMTokenMutation,
+  useFetchNotificationHistoryQuery,
+  // Check-in
+  useCancelCheckinMutation,
 } = api;

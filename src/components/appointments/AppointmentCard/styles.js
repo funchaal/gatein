@@ -35,6 +35,26 @@ export const styles = StyleSheet.create({
         color: THEME.slate400, // color: #94A3B8
     },
 
+    countdownBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffedd5', // orange-100
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    countdownBadgeWindow: {
+        backgroundColor: '#dcfce7', // green-100
+    },
+    countdownText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#c2410c', // orange-700
+    },
+    countdownTextWindow: {
+        color: '#15803d', // green-700
+    },
+
     companyRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',

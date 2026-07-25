@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { selectAppointment } from '../../../store/slices/activitySlice';
-import { formatDate, resolveStatusColor, getValue } from './utils';
+import { formatDate, resolveStatusColor, getValue, translateStatus } from './utils';
 import { styles } from './styles';
 import { Row, Header, SubHeader } from './CardComponents';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useLogActivityEventsMutation } from '../../../services/api';
 import { trackClicked } from '../../../utils/activityTracker';
+import { useCountdown } from '../../../hooks/useCountdown';
 
 export default function AppointmentCard({ item, config, company, hideRows }) {
     const dispatch = useDispatch();
@@ -32,9 +33,10 @@ export default function AppointmentCard({ item, config, company, hideRows }) {
         }
     };
 
-    const status = item?.status || 'Desconhecido';
-    const statusBaseColor = resolveStatusColor(status, config?.card_layout?.status_tags);
-    const displayTime = formatDate(item?.schedule?.start_time || item?.schedule_start_time);
+    const rawStatus = item?.status || 'Desconhecido';
+    const translatedStatus = translateStatus(rawStatus);
+    const statusBaseColor = resolveStatusColor(rawStatus, config?.card_layout?.status_tags);
+    const displayTime = formatDate(item?.schedule?.start_time || item?.window_start);
     const displayId = item?.ref;
 
     const { header, sub_header, body_rows } = config?.card_layout || {};
@@ -42,6 +44,18 @@ export default function AppointmentCard({ item, config, company, hideRows }) {
     const isTrip = item?.type === 'trip';
     const origin = isTrip ? (item?.from || getValue(item, 'origin_city') || item?.custom_data?.origin_city || 'Origem') : '';
     const destination = isTrip ? (item?.to || getValue(item, 'destination_city') || item?.custom_data?.destination_city || 'Destino') : '';
+
+    const startTime = item?.schedule?.start_time || item?.window_start;
+    const endTime = item?.schedule?.end_time || item?.window_end;
+    const startTol = item?.schedule?.start_tolerance || item?.start_tolerance || 0;
+    const endTol = item?.schedule?.end_tolerance || item?.end_tolerance || 0;
+
+    const countdown = useCountdown(startTime, endTime, {
+        startToleranceMinutes: startTol,
+        endToleranceMinutes: endTol
+    });
+
+    const isCountdownActive = countdown.phase === 'soon' || countdown.phase === 'window';
 
     return (
         <Pressable 
@@ -58,7 +72,16 @@ export default function AppointmentCard({ item, config, company, hideRows }) {
                     {isTrip && (
                         <Icon name="truck-delivery" size={16} color="#9778ff" style={{ marginRight: 6 }} />
                     )}
-                    <Text style={styles.dateText}>{displayTime}</Text>
+                    {isCountdownActive && !isTrip ? (
+                        <View style={[styles.countdownBadge, countdown.phase === 'window' && styles.countdownBadgeWindow]}>
+                            <Icon name="clock-outline" size={14} color={countdown.phase === 'window' ? "#15803d" : "#c2410c"} style={{ marginRight: 4 }} />
+                            <Text style={[styles.countdownText, countdown.phase === 'window' && styles.countdownTextWindow]}>
+                                {countdown.label}
+                            </Text>
+                        </View>
+                    ) : (
+                        <Text style={styles.dateText}>{countdown.phase !== 'far' && countdown.label ? countdown.label : displayTime}</Text>
+                    )}
                 </View>
                 <Text style={styles.idText}>#{displayId}</Text>
             </View>
@@ -81,9 +104,25 @@ export default function AppointmentCard({ item, config, company, hideRows }) {
                                 {company?.name || 'Transportadora'}
                             </Text>
                         </View>
-                        
-                        <View style={[styles.badge, { backgroundColor: statusBaseColor + '20' }]}>
-                            <Text style={[styles.badgeText, { color: statusBaseColor }]}>{status}</Text>
+                        <View style={{ flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                            <View style={[styles.badge, { backgroundColor: statusBaseColor + '20' }]}>
+                                <Text style={[styles.badgeText, { color: statusBaseColor }]}>{translatedStatus}</Text>
+                            </View>
+                            {rawStatus === 'ACTIVE' && countdown.phase === 'window' && (
+                                <View style={[styles.badge, { backgroundColor: '#dcfce7' }]}>
+                                    <Text style={[styles.badgeText, { color: '#15803d' }]}>JANELA ABERTA</Text>
+                                </View>
+                            )}
+                            {rawStatus === 'ACTIVE' && countdown.phase === 'ended' && (
+                                <View style={[styles.badge, { backgroundColor: '#fee2e2' }]}>
+                                    <Text style={[styles.badgeText, { color: '#b91c1c' }]}>ATRASADO</Text>
+                                </View>
+                            )}
+                            {(rawStatus === 'DEACTIVATED' || rawStatus === 'DESATIVADO') && (
+                                <View style={[styles.badge, { backgroundColor: '#fee2e2' }]}>
+                                    <Text style={[styles.badgeText, { color: '#b91c1c' }]}>DESATIVADO</Text>
+                                </View>
+                            )}
                         </View>
                     </View>
 

@@ -13,7 +13,7 @@ import TabSlider from "../../components/ui/TabSlider";
 import ScreenHeader from "../../components/ui/ScreenHeader";
 
 const getAppointmentDate = (appt) => {
-    const raw = appt?.schedule_start_time || appt?.Start_Time || appt?.start_time || appt?.scheduled_time;
+    const raw = appt?.window_start || appt?.Start_Time || appt?.start_time || appt?.scheduled_time;
     if (!raw) return null;
     try { return new Date(raw); } catch { return null; }
 };

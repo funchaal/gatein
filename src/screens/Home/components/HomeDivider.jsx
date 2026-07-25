@@ -11,7 +11,7 @@ export default function HomeDivider() {
 
 const styles = StyleSheet.create({
   dividerWrap: {
-    paddingVertical: 14,
+    paddingVertical: 8,
     alignItems: 'center',
     backgroundColor: 'white',
   },

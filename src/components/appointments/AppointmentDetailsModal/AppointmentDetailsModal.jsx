@@ -99,7 +99,7 @@ export default function AppointmentDetailsModal() {
 
     const statusText = localAppointment?.status || 'Desconhecido';
     const statusColor = localAppointment ? resolveStatusColor(statusText, localConfig?.card_layout?.status_tags) : '#000';
-    const displayTime = localAppointment ? formatDate(localAppointment?.schedule?.start_time || localAppointment?.schedule_start_time) : '';
+    const displayTime = localAppointment ? formatDate(localAppointment?.schedule?.start_time || localAppointment?.window_start) : '';
     const displayId = localAppointment?.ref || '';
     const modalLayout = localConfig?.modal_layout || [];
 

@@ -38,18 +38,18 @@ const activitySlice = createSlice({
             const index = state.appointments.findIndex(item => item.id === id);
 
             if (index !== -1) {
-                state.appointments[index].status = 'CHECKED_IN';
+                state.appointments[index].status = 'CHECKED-IN';
                 state.appointments[index].tickets = tickets;
             } else {
                 const tripIndex = state.trips.findIndex(item => item.id === id);
                 if (tripIndex !== -1) {
-                    state.trips[tripIndex].status = 'CHECKED_IN';
+                    state.trips[tripIndex].status = 'CHECKED-IN';
                     state.trips[tripIndex].tickets = tickets;
                 }
             }
 
             if (state.selectedAppointment?.id === id) {
-                state.selectedAppointment.status = 'CHECKED_IN';
+                state.selectedAppointment.status = 'CHECKED-IN';
                 state.selectedAppointment.tickets = tickets;
             }
         },
@@ -123,14 +123,14 @@ const activitySlice = createSlice({
                     );
 
                     if (index !== -1) {
-                        state.appointments[index].status = 'CHECKED_IN';
+                        state.appointments[index].status = 'CHECKED-IN';
                         state.appointments[index].ticket = ticketItem.ticket;
                     } else {
                         const tripIndex = state.trips.findIndex(
                             (trip) => trip.terminal_id === companyId && trip.ref === appointmentRef
                         );
                         if (tripIndex !== -1) {
-                            state.trips[tripIndex].status = 'CHECKED_IN';
+                            state.trips[tripIndex].status = 'CHECKED-IN';
                             state.trips[tripIndex].ticket = ticketItem.ticket;
                         }
                     }
@@ -166,7 +166,7 @@ export const selectAppointmentById = (state, id) =>
 export const selectOnGoingAppointments = createSelector(
     [selectAllActivity],
     (items) => (items || []).filter(item =>
-        ['CHECKED_IN', 'IN_PROGRESS'].includes(item?.status) && !(item?.type === 'trip' || item?.is_trip)
+        ['CHECKED-IN', 'ON_GOING'].includes(item?.status) && !(item?.type === 'trip' || item?.is_trip)
     )
 );
 
@@ -180,28 +180,37 @@ export const selectIsDriverCheckedIn = createSelector(
     (appointments) => appointments.length > 0
 );
 
+const ACTIVE_STATUSES = ['CHECKED-IN', 'ON_GOING', 'ACTIVE', 'PAUSED', 'PLANNED', 'AGENDADO', 'NO PÁTIO', 'EM ANDAMENTO', 'PAUSADO'];
+
+const isActiveItem = (item) => {
+    if (!item || item.status === 'DELETED') return false;
+    if (ACTIVE_STATUSES.includes(item.status)) return true;
+    if (item.status === 'DEACTIVATED' || item.status === 'DESATIVADO') {
+        const refTime = item.deactivated_at || item.updated_at;
+        if (!refTime) return true;
+        return (Date.now() - new Date(refTime).getTime()) <= 12 * 60 * 60 * 1000;
+    }
+    return false;
+};
+
 export const selectByType = {
     "active-all": createSelector([selectAllActivity], items =>
-        items.filter(i => ['CHECKED_IN', 'IN_PROGRESS', 'SCHEDULED', 'PLANNED'].includes(i.status))
+        (items || []).filter(isActiveItem)
     ),
     "active-appointments": createSelector([selectAllActivity], items =>
-        items.filter(i =>
-            ['CHECKED_IN', 'IN_PROGRESS', 'SCHEDULED', 'PLANNED'].includes(i.status) &&
-            !(i.type === "trip" || i.is_trip)
-        )
+        (items || []).filter(i => isActiveItem(i) && !(i.type === "trip" || i.is_trip))
     ),
     "active-trips": createSelector([selectAllActivity], items =>
-        items.filter(i =>
-            ['CHECKED_IN', 'IN_PROGRESS', 'SCHEDULED', 'PLANNED'].includes(i.status) &&
-            (i.type === "trip" || i.is_trip)
-        )
+        (items || []).filter(i => isActiveItem(i) && (i.type === "trip" || i.is_trip))
     ),
-    "history-all": createSelector([selectAllActivity], items => items),
+    "history-all": createSelector([selectAllActivity], items =>
+        (items || []).filter(i => i.status !== 'DELETED' && !isActiveItem(i))
+    ),
     "history-appointments": createSelector([selectAllActivity], items =>
-        items.filter(i => !(i.type === "trip" || i.is_trip))
+        (items || []).filter(i => i.status !== 'DELETED' && !isActiveItem(i) && !(i.type === "trip" || i.is_trip))
     ),
     "history-trips": createSelector([selectAllActivity], items =>
-        items.filter(i => i.type === "trip" || i.is_trip)
+        (items || []).filter(i => i.status !== 'DELETED' && !isActiveItem(i) && (i.type === "trip" || i.is_trip))
     ),
 };
 

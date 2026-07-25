@@ -9,6 +9,7 @@ import BottomTabNavigator from './BottomTabNavigator';
 import MapScreen from '../screens/Map';
 import AlertsScreen from '../screens/backlog/AlertsScreen';
 import TicketScreen from "../screens/Ticket";
+import TicketsListScreen from "../screens/Ticket/TicketsListScreen";
 import CheckinProcessingScreen from '../screens/CheckinProcessing';
 import CheckinSuccess from '../screens/CheckinSuccess';
 import CheckinFail from '../screens/CheckinFail';
@@ -85,6 +86,11 @@ export default function AppStack() {
                 name="Alerts" 
                 component={AlertsScreen} 
                 options={{ title: 'Alertas' }} 
+            />
+            <Stack.Screen 
+                name="TicketsList" 
+                component={TicketsListScreen} 
+                options={{ title: 'Meus Tickets' }} 
             />
             <Stack.Screen 
                 name='Ticket' 

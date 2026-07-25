@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Animated } from 'react-native';
+import { View, Text, Animated, Alert } from 'react-native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCheckinRequestMutation } from '../../services/api';
@@ -103,8 +103,19 @@ export default function CheckinProcessing() {
       }
       try {
         const response = await checkinRequest(activeTerminalId).unwrap();
-        // Replace current screen so we don't go back to 'Processing' from 'Success'
-        navigation.replace('CheckinSuccess', { data: response });
+        Alert.alert(
+          "Check-in Solicitado",
+          response.message || "Aguardando retorno do servidor. Quando o check-in for confirmado você será notificado.",
+          [
+            {
+              text: "Ok",
+              onPress: () => {
+                navigation.navigate('Main');
+              }
+            }
+          ],
+          { cancelable: false }
+        );
       } catch (err) {
         console.error(err);
         navigation.replace('CheckinFail');

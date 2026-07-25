@@ -35,8 +35,8 @@ const authSlice = createSlice({
       state.isOffline = false;
       state.error = null;
       state.isDeviceValidated = false;
-      
-      secureStorage.clearAll().catch(err => 
+
+      secureStorage.clearAll().catch(err =>
         console.error('Error clearing Keychain on logout:', err)
       );
     },
@@ -48,8 +48,8 @@ const authSlice = createSlice({
       state.isOffline = false;
       state.error = null;
       state.isDeviceValidated = false;
-      
-      secureStorage.clearToken().catch(err => 
+
+      secureStorage.clearToken().catch(err =>
         console.error('Error clearing token on logout:', err)
       );
     },
@@ -86,14 +86,14 @@ const authSlice = createSlice({
     builder
       // --- LOGIN E REGISTRO (Ambos logam o usuário) ---
       .addMatcher(
-        isAnyOf(api.endpoints.login.matchPending, api.endpoints.registerRequest.matchPending), 
+        isAnyOf(api.endpoints.login.matchPending, api.endpoints.registerRequest.matchPending),
         (state) => {
           state.isLoading = true;
           state.error = null;
         }
       )
       .addMatcher(
-        isAnyOf(api.endpoints.login.matchFulfilled, api.endpoints.registerRequest.matchFulfilled), 
+        isAnyOf(api.endpoints.login.matchFulfilled, api.endpoints.registerRequest.matchFulfilled),
         (state, action) => {
           state.isLoading = false;
           state.isAuthenticated = true;
@@ -101,8 +101,8 @@ const authSlice = createSlice({
           state.user = action.payload.user;
           state.isOffline = false;
           state.savedTaxId = action.payload.user.tax_id;
-          state.isDeviceValidated = true; 
-          
+          state.isDeviceValidated = true;
+
           if (api.endpoints.login.matchFulfilled(action)) {
             state.emailPromptRequired = !action.payload.user.email;
           } else {
@@ -111,14 +111,14 @@ const authSlice = createSlice({
         }
       )
       .addMatcher(
-        isAnyOf(api.endpoints.login.matchRejected, api.endpoints.registerRequest.matchRejected), 
+        isAnyOf(api.endpoints.login.matchRejected, api.endpoints.registerRequest.matchRejected),
         (state, action) => {
           state.isLoading = false;
           state.error = action.payload;
-          
+
           // FastAPI usa 'detail' para as mensagens do HTTPException
           const errorCode = action.payload?.data?.detail?.code || action.payload?.data?.error?.code;
-          
+
           if (errorCode === 'DEVICE_NOT_VALIDATED') {
             state.isDeviceValidated = false;
           }
@@ -139,7 +139,7 @@ const authSlice = createSlice({
         if (action.payload.user) {
           state.user = action.payload.user;
         }
-        
+
         if (action.payload.savedTaxId) {
           state.savedTaxId = action.payload.savedTaxId;
         }
@@ -148,11 +148,11 @@ const authSlice = createSlice({
         state.isAppLoading = false;
         state.isAuthenticated = false;
         state.token = null;
-        
+
         if (action.payload?.data?.savedTaxId) {
           state.savedTaxId = action.payload.data.savedTaxId;
         }
-        
+
         // Verifica tanto detail (FastAPI) quanto error 
         if (action.payload?.data?.detail || action.payload?.data?.error || action.payload?.error) {
           state.error = action.payload;
@@ -161,10 +161,10 @@ const authSlice = createSlice({
   },
 });
 
-export const { 
-  logout, 
+export const {
+  logout,
   logoutKeepTaxId,
-  clearError, 
+  clearError,
   setAuthenticated,
   setSavedTaxId,
   setDeviceValidated,

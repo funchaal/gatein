@@ -263,9 +263,9 @@ export const activityAPICall = async (userId) => {
                             id: '1',
                             ref: 'AG-2026-002', 
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
-                            status: 'SCHEDULED',
+                            status: 'ACTIVE',
                             booking: 'DPW-9090',
-                            schedule_start_time: '2024-10-21 14:00',
+                            window_start: '2024-10-21 14:00',
                             // custom_data contém os campos dinâmicos
                             custom_data: {
                                 unit_id: 'TCLU1234567888',
@@ -285,7 +285,7 @@ export const activityAPICall = async (userId) => {
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
                             status: 'No Pátio',
                             booking: 'DPW-9091',
-                            schedule_start_time: '2024-10-21 16:30',
+                            window_start: '2024-10-21 16:30',
                             custom_data: {
                                 unit_id: 'MSCU9876543',
                                 plate: 'ABC-1234',
@@ -301,9 +301,9 @@ export const activityAPICall = async (userId) => {
                             id: '3',
                             ref: 'AG-2026-004', 
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a9',
-                            status: 'SCHEDULED',
+                            status: 'ACTIVE',
                             booking: 'BTP-5502',
-                            schedule_start_time: '2024-10-21 18:00',
+                            window_start: '2024-10-21 18:00',
                             custom_data: {
                                 plate: 'XYZ-9876',
                                 driver_name: 'João Silva',
@@ -318,9 +318,9 @@ export const activityAPICall = async (userId) => {
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
                             status: 'Expirado',
                             booking: 'DPW-8888',
-                            schedule_start_time: '2024-10-20 10:00',
+                            window_start: '2024-10-20 10:00',
                             custom_data: {
-                                unit_id: 'HLBU2233445',
+                                HLBU2233445: 'HLBU2233445',
                                 plate: 'DEF-5678',
                                 vessel_name: 'CMA CGM BAHIA',
                                 booking: 'CMAU5566778',
@@ -336,8 +336,8 @@ export const activityAPICall = async (userId) => {
                             ref: 'TRIP-001',
                             terminal_id: '6c267c34-d755-4134-ba2a-c5780d9061a0',
                             is_trip: true,
-                            status: 'IN_PROGRESS',
-                            schedule_start_time: '2024-10-21 14:00',
+                            status: 'ON_GOING',
+                            window_start: '2024-10-21 14:00',
                             custom_data: {
                                 plate: 'NZR-7854',
                                 destination: 'Terminal DP World'
