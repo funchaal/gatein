@@ -21,8 +21,13 @@ export const screenStyles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     scrollContent: {
-        paddingBottom: 16,
+        paddingBottom: 24,
+    },
+    viewShotContainer: {
+        backgroundColor: '#ffffff',
         paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 24,
     },
     topInfoContainer: {
         paddingTop: 16,

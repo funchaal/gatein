@@ -121,23 +121,23 @@ const styles = StyleSheet.create({
 
     // Estilos para o componente Field
     fieldContainer: { 
-        paddingVertical: 6,
+        paddingVertical: 5,
         marginVertical: 0,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
     fieldLabel: { 
-        fontSize: 16, // font-size: 16px
-        color: THEME.slate400, // color
-        fontWeight: '500', // font-weight: 500
-        marginBottom: 2, // margin-bottom: 2px
+        fontSize: 14,
+        color: THEME.slate400,
+        fontWeight: '500',
+        marginBottom: 2,
         textTransform: 'capitalize',
     },
     fieldValue: { 
-        fontSize: 16, // font-size: 16px
-        color: '#334155', // color
-        fontWeight: '600', // font-weight: 600
+        fontSize: 14,
+        color: '#334155',
+        fontWeight: '600',
     },
 
     // Estilos para o componente AlertComponent

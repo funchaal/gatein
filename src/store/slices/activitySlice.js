@@ -115,26 +115,32 @@ const activitySlice = createSlice({
                 const companyId = action.meta.arg.originalArgs;
                 const ticketsResponse = action.payload;
 
-                ticketsResponse.forEach(ticketItem => {
-                    const appointmentRef = ticketItem.appointment_ref;
+                const ticketsList = Array.isArray(ticketsResponse)
+                    ? ticketsResponse
+                    : (Array.isArray(ticketsResponse?.tickets) ? ticketsResponse.tickets : null);
 
-                    const index = state.appointments.findIndex(
-                        (appt) => appt.terminal_id === companyId && appt.ref === appointmentRef
-                    );
+                if (ticketsList) {
+                    ticketsList.forEach(ticketItem => {
+                        const appointmentRef = ticketItem.appointment_ref;
 
-                    if (index !== -1) {
-                        state.appointments[index].status = 'CHECKED-IN';
-                        state.appointments[index].ticket = ticketItem.ticket;
-                    } else {
-                        const tripIndex = state.trips.findIndex(
-                            (trip) => trip.terminal_id === companyId && trip.ref === appointmentRef
+                        const index = state.appointments.findIndex(
+                            (appt) => appt.terminal_id === companyId && appt.ref === appointmentRef
                         );
-                        if (tripIndex !== -1) {
-                            state.trips[tripIndex].status = 'CHECKED-IN';
-                            state.trips[tripIndex].ticket = ticketItem.ticket;
+
+                        if (index !== -1) {
+                            state.appointments[index].status = 'CHECKED-IN';
+                            state.appointments[index].ticket = ticketItem.ticket;
+                        } else {
+                            const tripIndex = state.trips.findIndex(
+                                (trip) => trip.terminal_id === companyId && trip.ref === appointmentRef
+                            );
+                            if (tripIndex !== -1) {
+                                state.trips[tripIndex].status = 'CHECKED-IN';
+                                state.trips[tripIndex].ticket = ticketItem.ticket;
+                            }
                         }
-                    }
-                });
+                    });
+                }
             });
     },
 });
@@ -147,20 +153,20 @@ export const {
 } = activitySlice.actions;
 
 // ... (Seletores Básicos permanecem os mesmos) ...
-export const selectAllAppointments = (state) => state.activity.appointments;
-export const selectAllTrips = (state) => state.activity.trips;
+export const selectAllAppointments = (state) => state.activity?.appointments || [];
+export const selectAllTrips = (state) => state.activity?.trips || [];
 export const selectAllActivity = createSelector(
     [selectAllAppointments, selectAllTrips],
     (appointments, trips) => [...(appointments || []), ...(trips || [])]
 );
-export const selectSelectedAppointment = (state) => state.activity.selectedAppointment;
-export const selectActivityStatus = (state) => state.activity.status;
+export const selectSelectedAppointment = (state) => state.activity?.selectedAppointment;
+export const selectActivityStatus = (state) => state.activity?.status;
 
 // Novo Seletor exportado
-export const selectHasMoreActivity = (state) => state.activity.hasMore;
+export const selectHasMoreActivity = (state) => state.activity?.hasMore;
 
 export const selectAppointmentById = (state, id) =>
-    state.activity.appointments.find(item => item.id === id) || state.activity.trips.find(item => item.id === id);
+    (state.activity?.appointments || []).find(item => item.id === id) || (state.activity?.trips || []).find(item => item.id === id);
 
 // ... (Seletores Derivados permanecem os mesmos) ...
 export const selectOnGoingAppointments = createSelector(
@@ -177,20 +183,14 @@ export const selectOnGoingTerminalId = createSelector(
 
 export const selectIsDriverCheckedIn = createSelector(
     [selectOnGoingAppointments],
-    (appointments) => appointments.length > 0
+    (appointments) => Boolean(appointments?.length)
 );
 
-const ACTIVE_STATUSES = ['CHECKED-IN', 'ON_GOING', 'ACTIVE', 'PAUSED', 'PLANNED', 'AGENDADO', 'NO PÁTIO', 'EM ANDAMENTO', 'PAUSADO'];
+const ACTIVE_STATUSES = ['CHECKED-IN', 'CHECKED_IN', 'ON_GOING', 'ON-GOING', 'ACTIVE', 'PAUSED', 'PLANNED', 'AGENDADO', 'NO PÁTIO', 'EM ANDAMENTO', 'PAUSADO', 'IN_PROGRESS'];
 
 const isActiveItem = (item) => {
     if (!item || item.status === 'DELETED') return false;
-    if (ACTIVE_STATUSES.includes(item.status)) return true;
-    if (item.status === 'DEACTIVATED' || item.status === 'DESATIVADO') {
-        const refTime = item.deactivated_at || item.updated_at;
-        if (!refTime) return true;
-        return (Date.now() - new Date(refTime).getTime()) <= 12 * 60 * 60 * 1000;
-    }
-    return false;
+    return ACTIVE_STATUSES.includes(item.status);
 };
 
 export const selectByType = {

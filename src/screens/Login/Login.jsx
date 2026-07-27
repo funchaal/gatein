@@ -166,7 +166,7 @@ export default function LoginScreen({ navigation, route }) {
     return (
         <ScreenWrapper>
             <KeyboardAvoidingView 
-                behavior={Platform.OS === "ios" ? "padding" : "height"} 
+                behavior={Platform.OS === "ios" ? "padding" : undefined} 
                 style={styles.keyboardView}
             >
                 {step === 'cpf' ? (

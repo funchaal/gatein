@@ -121,8 +121,19 @@ export default function ServicesScreen() {
         );
     };
 
-    const dataToDisplay = isSearching ? searchData : initialData;
+    const rawDataToDisplay = isSearching ? searchData : initialData;
     const isLoading = isSearching ? isSearchLoading : (!initialData && isInitialLoading);
+
+    const dataToDisplay = React.useMemo(() => {
+        if (!rawDataToDisplay) return [];
+        return [...rawDataToDisplay].sort((a, b) => {
+            const aCount = (a.appointment_count || 0) + (a.trip_count || 0);
+            const bCount = (b.appointment_count || 0) + (b.trip_count || 0);
+            if (aCount > 0 && bCount === 0) return -1;
+            if (aCount === 0 && bCount > 0) return 1;
+            return 0;
+        });
+    }, [rawDataToDisplay]);
 
     return (
         <View style={styles.container}>
@@ -140,7 +151,7 @@ export default function ServicesScreen() {
                 </View>
             ) : (
                 <FlatList
-                    data={dataToDisplay || []}
+                    data={dataToDisplay}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderItem}
                     ItemSeparatorComponent={ListSeparator}

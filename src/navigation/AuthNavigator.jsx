@@ -27,7 +27,55 @@ import { COLORS } from '../constants/colors';
 
 const Stack = createStackNavigator();
 
-const getScreenOptions = ({ navigation }) => ({
+/**
+ * Custom horizontal slide interpolator without parallax on the unfocused screen.
+ * See AppStack.jsx for detailed explanation.
+ */
+const forHorizontalSlide = ({ current, inverted, layouts: { screen } }) => {
+    const { multiply } = require('react-native').Animated;
+    const translateX = multiply(
+        current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [screen.width, 0],
+            extrapolate: 'clamp',
+        }),
+        inverted
+    );
+
+    return {
+        cardStyle: {
+            transform: [{ translateX }],
+        },
+        overlayStyle: {
+            opacity: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.07],
+                extrapolate: 'clamp',
+            }),
+        },
+        shadowStyle: {
+            shadowOpacity: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.3],
+                extrapolate: 'clamp',
+            }),
+        },
+    };
+};
+
+const smoothSlideSpec = {
+    animation: 'spring',
+    config: {
+        stiffness: 1000,
+        damping: 500,
+        mass: 3,
+        overshootClamping: true,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+    },
+};
+
+const getScreenOptions = () => ({
     headerTitleAlign: 'center',
     headerBackTitleVisible: false,
     headerTintColor: COLORS.primary,
@@ -41,11 +89,11 @@ const getScreenOptions = ({ navigation }) => ({
         shadowOpacity: 0,
         borderBottomWidth: 0,
     },
-    headerLeft: () => {
-        if (!navigation.canGoBack()) return null;
+    headerLeft: (props) => {
+        if (!props?.canGoBack) return null;
         return (
             <TouchableOpacity 
-                onPress={() => navigation.goBack()} 
+                onPress={props.onPress} 
                 style={{
                     marginLeft: 24,
                     width: 36,
@@ -66,7 +114,17 @@ export default function AuthNavigator() {
     const { savedTaxId } = useSelector((state) => state.auth);
 
     return (
-        <Stack.Navigator screenOptions={({ navigation }) => ({ animationEnabled: true, ...getScreenOptions({ navigation }) })}>
+        <Stack.Navigator 
+            screenOptions={{ 
+                gestureDirection: 'horizontal',
+                transitionSpec: {
+                    open: smoothSlideSpec,
+                    close: smoothSlideSpec,
+                },
+                cardStyleInterpolator: forHorizontalSlide,
+                ...getScreenOptions() 
+            }}
+        >
             <Stack.Screen 
                 name='Welcome' 
                 component={WelcomeScreen} 

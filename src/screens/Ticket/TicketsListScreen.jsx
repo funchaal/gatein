@@ -1,13 +1,17 @@
-import React, { useMemo } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import ListSeparator from '../../components/ui/ListSeparator';
+import CompanyLogo from '../../components/common/CompanyLogo';
 
-import { selectAllAppointments } from '../../store/slices/activitySlice';
+import { selectAllAppointments, selectHasMoreActivity } from '../../store/slices/activitySlice';
 import { selectAllTerminals, selectAllLayouts } from '../../store/slices/companiesSlice';
+import { useFetchActivityDataQuery } from '../../services/api';
+
+const PAGE_LIMIT = 50;
 
 const getAppointmentDate = (appt) => {
     const raw = appt?.window_start || appt?.Start_Time || appt?.start_time || appt?.scheduled_time;
@@ -70,6 +74,15 @@ const getTicketDateLabel = (dateString) => {
 
 export default function TicketsListScreen() {
     const navigation = useNavigation();
+    const [page, setPage] = useState(0);
+
+    const { isFetching } = useFetchActivityDataQuery({
+        status_filter: 'all',
+        limit: PAGE_LIMIT,
+        offset: page * PAGE_LIMIT
+    });
+
+    const hasMore = useSelector(selectHasMoreActivity);
     const appointments = useSelector(selectAllAppointments);
     const terminals = useSelector(selectAllTerminals) || {};
     const layouts = useSelector(selectAllLayouts) || {};
@@ -84,6 +97,12 @@ export default function TicketsListScreen() {
                 return dateB - dateA; // Newest appointments first
             });
     }, [appointments]);
+
+    const handleLoadMore = () => {
+        if (!isFetching && hasMore) {
+            setPage(prev => prev + 1);
+        }
+    };
 
     const navigateToTicketDetail = (appt) => {
         if (!appt.tickets || appt.tickets.length === 0) return;
@@ -132,7 +151,16 @@ export default function TicketsListScreen() {
                 </View>
                 
                 <View style={styles.rowBody}>
-                    <Text style={styles.terminalName}>{terminalName}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                        <CompanyLogo
+                            logoUrl={terminals[item.terminal_id]?.logo_url || item.terminal_logo_url}
+                            name={terminalName}
+                            companyId={item.terminal_id}
+                            size={22}
+                            style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.terminalName}>{terminalName}</Text>
+                    </View>
                     <Text style={styles.summary} numberOfLines={2}>
                         {item.summary || 'Sem resumo disponível'}
                     </Text>
@@ -149,7 +177,7 @@ export default function TicketsListScreen() {
     };
 
     return (
-        <ScreenWrapper noPadding={true}>
+        <ScreenWrapper noPadding={true} edges={['left', 'right', 'bottom']}>
             <View style={styles.container}>
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <FlatList
@@ -159,16 +187,23 @@ export default function TicketsListScreen() {
                     ItemSeparatorComponent={ListSeparator}
                     contentContainerStyle={styles.listContent}
                     showsVerticalScrollIndicator={false}
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={
+                        isFetching ? <ActivityIndicator style={{ marginVertical: 20 }} color="#F97316" /> : null
+                    }
                     ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <View style={styles.emptyIconWrapper}>
-                                <Icon name="ticket-outline" size={48} color="#94A3B8" />
+                        !isFetching && (
+                            <View style={styles.emptyContainer}>
+                                <View style={styles.emptyIconWrapper}>
+                                    <Icon name="ticket-outline" size={48} color="#94A3B8" />
+                                </View>
+                                <Text style={styles.emptyTitle}>Nenhum ticket disponível</Text>
+                                <Text style={styles.emptySubtitle}>
+                                    Seus tickets de acesso aparecerão aqui após realizar o check-in nos terminais autorizados.
+                                </Text>
                             </View>
-                            <Text style={styles.emptyTitle}>Nenhum ticket disponível</Text>
-                            <Text style={styles.emptySubtitle}>
-                                Seus tickets de acesso aparecerão aqui após realizar o check-in nos terminais autorizados.
-                            </Text>
-                        </View>
+                        )
                     }
                 />
             </View>
@@ -182,6 +217,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
     },
     listContent: {
+        paddingTop: 8,
         paddingBottom: 40,
     },
     row: {

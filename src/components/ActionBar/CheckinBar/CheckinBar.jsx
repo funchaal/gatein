@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from './CheckinBar.styles';
 import { useCheckinBar } from './useCheckinBar';
+import CompanyLogo from '../../common/CompanyLogo';
 
 export default function CheckinBar() {
   const {
@@ -14,7 +15,12 @@ export default function CheckinBar() {
 
   return (
     <View style={styles.container}>
-      <Icon name="finger-print-outline" size={35} color="#555" />
+      <CompanyLogo
+        logoUrl={activeTerminal.logo_url}
+        name={activeTerminal.name}
+        size={36}
+        style={{ marginRight: 10 }}
+      />
       <View style={styles.textContainer}>
         <Text style={styles.bigText}>{activeTerminal.name}</Text>
         <Text style={styles.smallText}>Reconheça sua biometria</Text>

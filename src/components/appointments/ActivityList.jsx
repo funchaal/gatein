@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { selectByType, selectHasMoreActivity } from "../../store/slices/activitySlice";
 import { selectAllTerminals, selectAllTruckingCompanies, selectAllLayouts } from "../../store/slices/companiesSlice"; 
 import AppointmentCard from "./AppointmentCard";
+import { DEFAULT_TRIP_LAYOUT, DEFAULT_APPOINTMENT_LAYOUT } from "./AppointmentCard/constants";
 import { useFetchActivityDataQuery, useLogActivityEventsMutation } from "../../services/api";
 import { useFuzzyFilter } from "../../utils/levenshtein_search";
 import { trackViewed } from "../../utils/activityTracker";
@@ -67,14 +68,15 @@ const ActivityList = forwardRef(function ActivityList({
         const unseenEvents = [];
         items.forEach(item => {
             const activityId = item.id;
-            const activityType = item.type;
+            const isTripItem = item.type === "trip" || !!item.is_trip;
+            const activityType = isTripItem ? "trip" : "appointment";
             
             if (trackViewed(activityId)) {
                 unseenEvents.push({
                     activity_type: activityType,
                     activity_id: activityId,
                     event: "viewed",
-                    message: `${activityType === "trip" ? "Viagem" : "Agendamento"} visualizado no app móvel.`
+                    message: `${isTripItem ? "Viagem" : "Agendamento"} visualizado no app móvel.`
                 });
             }
         });
@@ -129,13 +131,14 @@ const ActivityList = forwardRef(function ActivityList({
     }, [isFiltered, search, emptyState, defaultEmptyState]);
 
     const getCardConfig = useCallback((item) => {
-        if (!layouts) return null;
-        if (item.type === "trip") {
+        if (!item) return null;
+        const isTrip = item.type === "trip" || !!item.is_trip;
+        if (isTrip) {
             const companyId = item.trucking_company_id;
-            return layouts.trip?.[`${companyId}_${item.layout_ref}`]?.layout || null;
+            return layouts?.trip?.[`${companyId}_${item.layout_ref}`]?.layout || DEFAULT_TRIP_LAYOUT;
         } else {
             const terminalId = item.terminal_id;
-            return layouts.appointment?.[`${terminalId}_${item.layout_ref}`]?.layout || null;
+            return layouts?.appointment?.[`${terminalId}_${item.layout_ref}`]?.layout || DEFAULT_APPOINTMENT_LAYOUT;
         }
     }, [layouts]);
 
@@ -152,15 +155,18 @@ const ActivityList = forwardRef(function ActivityList({
         return (
             <View ref={ref} style={contentContainerStyle}>
                 {ListHeaderComponent}
-                {data.map(item => (
-                    <View key={item.id.toString()} style={padded ? styles.cardWrapper : null}>
-                        <AppointmentCard 
-                            item={item} 
-                            config={getCardConfig(item)} 
-                            company={item.type === "trip" ? truckingCompanies?.[item.trucking_company_id] : terminals?.[item.terminal_id]}
-                        />
-                    </View>
-                ))}
+                {data.map(item => {
+                    const isTripItem = item.type === "trip" || !!item.is_trip;
+                    return (
+                        <View key={item.id.toString()} style={padded ? styles.cardWrapper : null}>
+                            <AppointmentCard 
+                                item={item} 
+                                config={getCardConfig(item)} 
+                                company={isTripItem ? truckingCompanies?.[item.trucking_company_id] : terminals?.[item.terminal_id]}
+                            />
+                        </View>
+                    );
+                })}
                 {!isFetching && data.length === 0 && (
                     <View style={styles.emptyContainer}>
                         <View style={styles.iconWrapper}>
@@ -180,15 +186,18 @@ const ActivityList = forwardRef(function ActivityList({
             ref={ref}
             data={data}
             keyExtractor={item => item.id.toString()}
-            renderItem={({ item }) => (
-                <View style={padded ? styles.cardWrapper : null}>
-                    <AppointmentCard 
-                        item={item} 
-                        config={getCardConfig(item)} 
-                        company={item.type === "trip" ? truckingCompanies?.[item.trucking_company_id] : terminals?.[item.terminal_id]}
-                    />
-                </View>
-            )}
+            renderItem={({ item }) => {
+                const isTripItem = item.type === "trip" || !!item.is_trip;
+                return (
+                    <View style={padded ? styles.cardWrapper : null}>
+                        <AppointmentCard 
+                            item={item} 
+                            config={getCardConfig(item)} 
+                            company={isTripItem ? truckingCompanies?.[item.trucking_company_id] : terminals?.[item.terminal_id]}
+                        />
+                    </View>
+                );
+            }}
             contentContainerStyle={[styles.listContent, contentContainerStyle]}
             ListHeaderComponent={ListHeaderComponent}
             ListEmptyComponent={

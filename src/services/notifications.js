@@ -159,6 +159,10 @@ export function onForegroundMessage(onMessage) {
   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
     console.log('[FCM] Mensagem em foreground:', remoteMessage);
 
+    // Salva a notificação no histórico local do celular
+    const { saveLocalNotification } = await import('./localNotificationStorage');
+    await saveLocalNotification(remoteMessage);
+
     const { notification, data } = remoteMessage;
     const type = data?.type;
 

@@ -1,19 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { SvgUri } from 'react-native-svg';
-import { isPlaceholderUrl } from '../../utils/tools';
+import CompanyLogo from './CompanyLogo';
 
 export default function ListItem({ onPress, title, titleStyle, subtitles = [], rightElement, logoUrl, leftElement, hideLeft }) {
-    const [logoError, setLogoError] = useState(false);
-    const initial = title ? title.substring(0, 2).toUpperCase() : '';
-
-    // Reset error state if the URL changes (critical for FlatList recycling)
-    useEffect(() => {
-        setLogoError(false);
-    }, [logoUrl]);
-
-    const showSvg = logoUrl && !logoError && !isPlaceholderUrl(logoUrl);
-
     return (
         <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
             {!hideLeft && (
@@ -22,20 +11,12 @@ export default function ListItem({ onPress, title, titleStyle, subtitles = [], r
                         {leftElement}
                     </View>
                 ) : (
-                    <View style={styles.logoCircle}>
-                        {showSvg ? (
-                            <View style={styles.svgWrapper}>
-                                <SvgUri
-                                    width={32}
-                                    height={32}
-                                    uri={logoUrl}
-                                    onError={() => setLogoError(true)}
-                                />
-                            </View>
-                        ) : (
-                            <Text style={styles.logoInitial}>{initial}</Text>
-                        )}
-                    </View>
+                    <CompanyLogo
+                        logoUrl={logoUrl}
+                        name={title}
+                        size={44}
+                        style={styles.logoContainer}
+                    />
                 )
             )}
 
@@ -72,28 +53,9 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start', // Aligned on top
         width: '100%',
     },
-    logoCircle: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#F1F5F9',
-        alignItems: 'center',
-        justifyContent: 'center',
+    logoContainer: {
         marginRight: 14,
         marginTop: 2, // Aligns logo with first line of title text
-    },
-    logoInitial: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#475569',
-    },
-    svgWrapper: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        overflow: 'hidden',
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     leftContainer: {
         marginRight: 16,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Input from '../../../components/ui/Input';
 import MainAsyncButton from '../../../components/ui/MainAsyncButton';
@@ -20,7 +20,12 @@ export default function PasswordStep({
     navigation
 }) {
     return (
-        <View style={styles.container}>
+        <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+        >
             <View style={styles.content}>
                 <View style={styles.iconBadge}>
                     <MaterialCommunityIcons name="lock-outline" size={34} color={COLORS.primary} />
@@ -58,6 +63,6 @@ export default function PasswordStep({
                    onPress={() => navigation.navigate('ForgotPassword', { origin: 'Login' })}
                 />
             </View>
-        </View>
+        </ScrollView>
     );
 }

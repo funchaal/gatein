@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, FlatList, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SvgUri } from 'react-native-svg';
 import { useFetchCompanyServicesQuery, useLazyGenerateIntegrationAuthTokenQuery } from '../../services/servicesApi';
 import { selectTerminalById, selectTruckingCompanyById } from '../../store/slices/companiesSlice';
 import ListItem from '../../components/ui/ListItem';
 import ListSeparator from '../../components/ui/ListSeparator';
 import LoadingModal from '../../components/ui/LoadingModal';
+import CompanyLogo from '../../components/common/CompanyLogo';
 import { COLORS } from '../../constants/colors';
-import { isPlaceholderUrl } from '../../utils/tools';
 
 export default function CompanyServicesScreen() {
     const route = useRoute();
@@ -24,13 +23,6 @@ export default function CompanyServicesScreen() {
 
     const { data: responseData, isLoading, isError } = useFetchCompanyServicesQuery(companyId);
     const [generateToken, { isLoading: isGeneratingToken }] = useLazyGenerateIntegrationAuthTokenQuery();
-
-    const [headerLogoError, setHeaderLogoError] = useState(false);
-
-    // Reset error state if the company changes
-    useEffect(() => {
-        setHeaderLogoError(false);
-    }, [companyId]);
 
     // Adjust native header (hide title, remove divider)
     useEffect(() => {
@@ -74,27 +66,16 @@ export default function CompanyServicesScreen() {
 
     const renderHeader = () => {
         if (!company) return null;
-        
-        const initial = company.name ? company.name.charAt(0).toUpperCase() : '';
-        const showSvg = company.logo_url && !headerLogoError && !isPlaceholderUrl(company.logo_url);
 
         return (
             <View style={styles.companyHeader}>
                 <View style={styles.headerTopRow}>
-                    <View style={styles.headerLogoCircle}>
-                        {showSvg ? (
-                            <View style={styles.headerSvgWrapper}>
-                                <SvgUri
-                                    width={48}
-                                    height={48}
-                                    uri={company.logo_url}
-                                    onError={() => setHeaderLogoError(true)}
-                                />
-                            </View>
-                        ) : (
-                            <Text style={styles.headerLogoInitial}>{initial}</Text>
-                        )}
-                    </View>
+                    <CompanyLogo
+                        logoUrl={company.logo_url}
+                        name={company.name}
+                        size={64}
+                        style={{ marginRight: 16 }}
+                    />
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.companyNameText}>{company.name}</Text>
                         {company.branch_name ? (
@@ -157,28 +138,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
-    },
-    headerLogoCircle: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#F1F5F9',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 16,
-    },
-    headerLogoInitial: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#475569',
-    },
-    headerSvgWrapper: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        overflow: 'hidden',
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     headerTextContainer: {
         flex: 1,

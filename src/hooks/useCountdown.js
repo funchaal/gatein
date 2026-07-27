@@ -83,22 +83,12 @@ export function useCountdown(startTimeISO, endTimeISO = null, opts = {}) {
       };
     }
 
-    // ── FASE: mais de 24h ────────────────────────────────────────────────────
-    if (msUntilWindowOpen > 24 * 60 * 60_000) {
-      return {
-        ..._emptyState(),
-        phase: 'far',
-        label: _formatDateTime(start),
-        startTime: _formatTime(start),
-      };
-    }
-
-    // ── FASE: hoje (entre 1h e 24h) ──────────────────────────────────────────
+    // ── FASE: mais de 1h antes do início da janela ──────────────────────────
     if (msUntilWindowOpen > 60 * 60_000) {
       return {
         ..._emptyState(),
-        phase: 'today',
-        label: `Hoje às ${_formatTime(start)}`,
+        phase: 'upcoming',
+        label: _formatDateTime(start),
         startTime: _formatTime(start),
       };
     }
@@ -127,7 +117,7 @@ export function useCountdown(startTimeISO, endTimeISO = null, opts = {}) {
 
     // Para quando não há data ou quando já encerrou
     const initialState = computeState();
-    if (!startTimeISO || initialState.phase === 'ended' || initialState.phase === 'far') {
+    if (!startTimeISO || initialState.phase === 'ended') {
       return; // Sem timer para fases estáticas
     }
 
@@ -135,7 +125,7 @@ export function useCountdown(startTimeISO, endTimeISO = null, opts = {}) {
       const next = computeState();
       setState(next);
 
-      // Para o timer quando o contador chega a zero
+      // Para o timer quando o contador chega a zero ou encerra
       if (next.phase === 'ended' || next.totalSeconds <= 0) {
         clearInterval(intervalRef.current);
       }
@@ -181,17 +171,23 @@ function _formatTime(ts) {
 
 function _formatDateTime(ts) {
   const d = new Date(ts);
-  const today = new Date();
-  const isToday = d.toDateString() === today.toDateString();
+  const now = new Date();
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  const isToday = targetDate.getTime() === today.getTime();
+  const isTomorrow = targetDate.getTime() === tomorrow.getTime();
 
   if (isToday) {
-    return `Hoje às ${_formatTime(ts)}`;
+    return 'Hoje';
+  }
+  if (isTomorrow) {
+    return 'Amanhã';
   }
 
-  return d.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const rawWeekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
+  const cleanWeekday = rawWeekday.replace('-feira', '');
+  return cleanWeekday.charAt(0).toUpperCase() + cleanWeekday.slice(1);
 }

@@ -104,7 +104,10 @@ function AppContent() {
 
     // ── Background: usuário clicou no banner com app em segundo plano ───────
     const unsubBackground = onBackgroundNotificationOpen((remoteMessage) => {
-      // Em background, só precisamos refazer o fetch — o banner já foi exibido
+      if (!remoteMessage) return;
+      const { saveLocalNotification } = require('./src/services/localNotificationStorage');
+      saveLocalNotification(remoteMessage);
+
       const type = remoteMessage?.data?.type;
       if (type && DATA_CHANGE_TYPES.has(type)) {
         refreshActivities();
@@ -117,6 +120,9 @@ function AppContent() {
     // ── Quit: app estava completamente fechado quando a notificação chegou ──
     getInitialNotification().then((remoteMessage) => {
       if (!remoteMessage) return;
+      const { saveLocalNotification } = require('./src/services/localNotificationStorage');
+      saveLocalNotification(remoteMessage);
+
       const type = remoteMessage?.data?.type;
       console.log('[FCM] App aberto via notificação tipo:', type);
       // Refaz fetch se era uma mudança de dado

@@ -84,19 +84,9 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
     const ACTION_BAR_HEIGHT = 75;
 
     // Animated values
-    const tabBarTranslateY = useRef(new Animated.Value(300)).current;
+    const tabBarTranslateY = useRef(new Animated.Value(0)).current;
     const actionBarHeight = useRef(new Animated.Value(showActionBar ? ACTION_BAR_HEIGHT : 0)).current;
     const actionBarTranslateY = useRef(new Animated.Value(showActionBar ? 0 : ACTION_BAR_HEIGHT)).current;
-
-    // Slide up tab bar on mount
-    useEffect(() => {
-        Animated.spring(tabBarTranslateY, {
-            toValue: 0,
-            tension: 40,
-            friction: 8,
-            useNativeDriver: true,
-        }).start();
-    }, [tabBarTranslateY]);
 
     // Keyboard slide down / slide up
     useEffect(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Input from '../../../components/ui/Input';
 import MainAsyncButton from '../../../components/ui/MainAsyncButton';
@@ -18,7 +18,12 @@ export default function CpfStep({
     navigation
 }) {
     return (
-        <View style={styles.container}>
+        <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+        >
             <View style={styles.content}>
                 <View style={styles.iconBadge}>
                     <MaterialCommunityIcons name="login" size={34} color={COLORS.primary} />
@@ -51,6 +56,6 @@ export default function CpfStep({
                     onPress={() => navigation.navigate('TaxId')}
                 />
             </View>
-        </View>
+        </ScrollView>
     );
 }

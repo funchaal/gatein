@@ -351,16 +351,6 @@ export const api = createApi({
       }),
     }),
 
-    /**
-     * Busca o histórico de notificações enviadas ao usuário nos últimos 7 dias.
-     */
-    fetchNotificationHistory: builder.query({
-      query: () => ({
-        url: '/notifications',
-        method: 'GET',
-      }),
-      providesTags: ['NotificationHistory'],
-    }),
 
     // --- CHECKIN CANCEL ---
 
@@ -414,7 +404,6 @@ export const {
   // Notificações FCM
   useRegisterFCMTokenMutation,
   useRemoveFCMTokenMutation,
-  useFetchNotificationHistoryQuery,
   // Check-in
   useCancelCheckinMutation,
 } = api;

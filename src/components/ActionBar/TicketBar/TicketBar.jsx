@@ -111,7 +111,7 @@ export default function TicketBar({ terminalConfig }) {
     };
 
     const handlePress = () => {
-        if (!onGoing.length) return;
+        if (!onGoing || !onGoing.length) return;
         onGoing.length === 1 ? navigate(onGoing[0]) : setPickerVisible(true);
     };
 

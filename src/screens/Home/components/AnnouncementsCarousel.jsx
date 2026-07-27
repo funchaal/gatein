@@ -16,6 +16,9 @@ import Icon from 'react-native-vector-icons/Feather';
 import { useLazyFetchActiveAnnouncementsQuery, useLogAnnouncementEventsMutation } from '../../../services/api';
 import { COLORS } from '../../../constants/colors';
 import { trackAnnouncementViewed } from '../../../utils/activityTracker';
+import { syncAnnouncementImageCache } from '../../../utils/announcementImageCache';
+import { syncCompanyLogoCache } from '../../../utils/companyLogoCache';
+import CompanyLogo from '../../../components/common/CompanyLogo';
 
 const { width: windowWidth } = Dimensions.get('window');
 const CARD_WIDTH = windowWidth - 40;
@@ -111,8 +114,59 @@ export default function AnnouncementsCarousel() {
     }
   }, [userCoords, trigger]);
 
-  const announcements = useMemo(() => {
+  const [processedRawData, setProcessedRawData] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
     const raw = response?.data || [];
+    if (raw.length === 0) {
+      setProcessedRawData([]);
+      return;
+    }
+
+    syncAnnouncementImageCache(raw).then(async (withImages) => {
+      if (!isMounted) return;
+
+      // 2. Extract unique companies from the announcements and cache their logos.
+      //    Each announcement may carry company_logo_url + company_id + company_name fields.
+      const companySet = {};
+      withImages.forEach((ann) => {
+        if (ann.company_id && !companySet[ann.company_id]) {
+          companySet[ann.company_id] = {
+            id: ann.company_id,
+            name: ann.company_name || ann.company_branch || '',
+            logo_url: ann.company_logo_url || null,
+          };
+        }
+      });
+
+      const companiesArray = Object.values(companySet);
+      let logoMap = {};
+      if (companiesArray.length > 0) {
+        const cachedCompanies = await syncCompanyLogoCache(companiesArray);
+        cachedCompanies.forEach((c) => {
+          logoMap[c.id] = c.logo_url;
+        });
+      }
+
+      // 3. Merge cached logo URIs back into announcements
+      const processed = withImages.map((ann) => {
+        const localLogo = logoMap[ann.company_id];
+        return localLogo ? { ...ann, company_logo_url: localLogo } : ann;
+      });
+
+      if (isMounted) {
+        setProcessedRawData(processed);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [response?.data]);
+
+  const announcements = useMemo(() => {
+    const raw = processedRawData.length > 0 ? processedRawData : (response?.data || []);
     if (raw.length === 0) return [];
     
     // Group by company_id
@@ -137,7 +191,7 @@ export default function AnnouncementsCarousel() {
       grouped.push(...groups[cid]);
     });
     return grouped;
-  }, [response?.data]);
+  }, [processedRawData, response?.data]);
 
   // activeIndexRef  → índice real do carousel (para o auto-play, sem stale closure)
   // displayedIndex  → índice do conteúdo visível no footer (muda só no meio da animação)
@@ -404,15 +458,11 @@ export default function AnnouncementsCarousel() {
               <Animated.View
                 style={[styles.logoWrapper, { opacity: logoO, transform: [{ translateY: logoY }] }]}
               >
-                {displayedAnn.company_logo_url ? (
-                  <Image source={{ uri: displayedAnn.company_logo_url }} style={styles.companyLogo} />
-                ) : (
-                  <View style={styles.placeholderLogo}>
-                    <Text style={styles.placeholderLogoText}>
-                      {displayedAnn.company_name.substring(0, 2).toUpperCase()}
-                    </Text>
-                  </View>
-                )}
+                <CompanyLogo
+                  logoUrl={displayedAnn.company_logo_url}
+                  name={displayedAnn.company_name}
+                  size={32}
+                />
               </Animated.View>
             </View>
 

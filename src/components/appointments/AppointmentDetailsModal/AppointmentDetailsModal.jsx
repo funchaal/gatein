@@ -7,10 +7,12 @@ import {
     selectAppointment
 } from '../../../store/slices/activitySlice';
 import { selectAllTerminals } from '../../../store/slices/companiesSlice';
-import { resolveStatusColor, get } from '../AppointmentCard/utils';
-import { THEME } from '../AppointmentCard/constants';
+import { resolveStatusColor, get, getStatusDisplay } from '../AppointmentCard/utils';
+import { THEME, DEFAULT_TRIP_LAYOUT, DEFAULT_APPOINTMENT_LAYOUT } from '../AppointmentCard/constants';
 import { COMPONENT_MAP } from './ModalComponents';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useCountdown } from '../../../hooks/useCountdown';
+import CompanyLogo from '../../common/CompanyLogo';
 
 const { height } = Dimensions.get('window');
 const MODAL_HEIGHT = height * 0.75;
@@ -29,6 +31,53 @@ const formatDate = (dateString) => {
     } catch (e) {
         return dateString;
     }
+};
+
+const formatFullDateTimeWindow = (startStr, endStr) => {
+    if (!startStr) return '';
+    const startDate = new Date(startStr);
+    if (isNaN(startDate.getTime())) return '';
+
+    const rawDate = startDate.toLocaleDateString('pt-BR', {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    const capitalizedDate = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+
+    const startTimeFormatted = startDate.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    if (!endStr) {
+        return `${capitalizedDate} às ${startTimeFormatted}`;
+    }
+
+    const endDate = new Date(endStr);
+    if (isNaN(endDate.getTime())) {
+        return `${capitalizedDate} às ${startTimeFormatted}`;
+    }
+
+    const endTimeFormatted = endDate.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const isSameDay = startDate.toDateString() === endDate.toDateString();
+
+    if (isSameDay) {
+        return `${capitalizedDate} • ${startTimeFormatted} às ${endTimeFormatted}`;
+    }
+
+    const rawEndDate = endDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
+    return `${capitalizedDate} ${startTimeFormatted} – ${rawEndDate} ${endTimeFormatted}`;
 };
 
 export default function AppointmentDetailsModal() {
@@ -97,22 +146,37 @@ export default function AppointmentDetailsModal() {
         }
     };
 
-    const statusText = localAppointment?.status || 'Desconhecido';
-    const statusColor = localAppointment ? resolveStatusColor(statusText, localConfig?.card_layout?.status_tags) : '#000';
+    const isTrip = localAppointment?.type === 'trip' || !!localAppointment?.is_trip;
+    const effectiveConfig = localConfig || (isTrip ? DEFAULT_TRIP_LAYOUT : DEFAULT_APPOINTMENT_LAYOUT);
+
+    const startTime = localAppointment?.schedule?.start_time || localAppointment?.window_start;
+    const endTime = localAppointment?.schedule?.end_time || localAppointment?.window_end;
+    const startTol = localAppointment?.schedule?.start_tolerance || localAppointment?.start_tolerance || 0;
+    const endTol = localAppointment?.schedule?.end_tolerance || localAppointment?.end_tolerance || 0;
+
+    const countdown = useCountdown(startTime, endTime, {
+        startToleranceMinutes: startTol,
+        endToleranceMinutes: endTol
+    });
+
+    const statusDisplay = getStatusDisplay(
+        localAppointment?.status, 
+        countdown.phase, 
+        effectiveConfig?.card_layout?.status_tags
+    );
     const displayTime = localAppointment ? formatDate(localAppointment?.schedule?.start_time || localAppointment?.window_start) : '';
     const displayId = localAppointment?.ref || '';
-    const modalLayout = localConfig?.modal_layout || [];
+    const modalLayout = effectiveConfig?.modal_layout || [];
 
     const renderCardHeader = () => {
-        if (!localConfig?.card_layout) return null;
+        if (!effectiveConfig?.card_layout) return null;
 
-        const { header, sub_header } = localConfig.card_layout;
+        const { header, sub_header } = effectiveConfig.card_layout;
         const headerValue = header?.field ? get(localAppointment, header.field) : null;
         const subHeaderValue = sub_header?.field ? get(localAppointment, sub_header.field) : null;
 
-        const isTrip = localAppointment?.type === 'trip';
-        const origin = isTrip ? (localAppointment?.from || localAppointment?.custom_data?.origin_city || 'Origem') : '';
-        const destination = isTrip ? (localAppointment?.to || localAppointment?.custom_data?.destination_city || 'Destino') : '';
+        const origin = isTrip ? (localAppointment?.from || get(localAppointment, 'origin_city') || localAppointment?.custom_data?.origin_city || 'Origem') : '';
+        const destination = isTrip ? (localAppointment?.to || get(localAppointment, 'destination_city') || localAppointment?.custom_data?.destination_city || 'Destino') : '';
 
         return (
             <View>
@@ -163,6 +227,22 @@ export default function AppointmentDetailsModal() {
                             <View style={styles.subHeaderGroup}>
                                 {sub_header.label && <Text style={styles.heroLabel}>{sub_header.label}</Text>}
                                 <Text style={styles.h2Default}>{subHeaderValue}</Text>
+                            </View>
+                        )}
+
+                        {startTime && (
+                            <View style={styles.windowGroup}>
+                                <Text style={styles.windowTitle}>JANELA DE AGENDAMENTO</Text>
+                                <Text style={styles.windowValueText}>
+                                    {formatFullDateTimeWindow(startTime, endTime)}
+                                </Text>
+                                {(startTol > 0 || endTol > 0) && (
+                                    <Text style={styles.windowToleranceText}>
+                                        Tolerância: {startTol > 0 ? `${startTol} min antes` : ''}
+                                        {startTol > 0 && endTol > 0 ? ' • ' : ''}
+                                        {endTol > 0 ? `${endTol} min depois` : ''}
+                                    </Text>
+                                )}
                             </View>
                         )}
                     </View>
@@ -316,9 +396,13 @@ export default function AppointmentDetailsModal() {
                         onPress={() => handleOpenMap(`${formattedName}, ${formattedAddress}`, terminalLat, terminalLng)}
                     >
                         <View style={styles.locationCardLeft}>
-                            <View style={styles.locationIconWrapper}>
-                                <Icon name="office-building-marker-outline" size={22} color="#9778ff" />
-                            </View>
+                            <CompanyLogo
+                                logoUrl={terminal?.logo_url || localAppointment?.terminal_logo_url}
+                                name={terminalName}
+                                companyId={localAppointment?.terminal_id}
+                                size={36}
+                                style={{ marginRight: 12 }}
+                            />
                             <View style={styles.locationCardInfo}>
                                 <Text style={styles.terminalName}>{formattedName}</Text>
                                 <Text style={styles.terminalAddress} numberOfLines={2}>{formattedAddress}</Text>
@@ -367,15 +451,15 @@ export default function AppointmentDetailsModal() {
                             nestedScrollEnabled={true}
                         >
                             <View style={styles.header}>
-                                <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
-                                    <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
+                                <View style={[styles.statusBadge, { backgroundColor: statusDisplay.bg }]}>
+                                    <Text style={[styles.statusText, { color: statusDisplay.color }]}>{statusDisplay.text}</Text>
                                 </View>
                                 <Text style={styles.idText}>#{displayId}</Text>
                             </View>
 
                             {renderCardHeader()}
                             {renderLocationSection()}
-                            {localConfig?.card_layout && <View style={styles.dividerContainer} />}
+                            {effectiveConfig?.card_layout && <View style={styles.dividerContainer} />}
 
                             <View style={styles.detailsSection}>
                                 {modalLayout.map((componentProps, index) => {
@@ -473,11 +557,11 @@ const styles = StyleSheet.create({
 
     // Seção Hero (Header e SubHeader Dinâmicos)
     heroSection: {
-        alignItems: 'flex-start', // align-items: flex-start
-        paddingVertical: 24, // padding-top: 24px; padding-bottom: 24px
-        paddingTop: 16, // padding-top: 16px (sobrescreve o acima)
-        backgroundColor: 'white', // background-color: white
-        gap: 10 // gap: 10px
+        alignItems: 'flex-start',
+        paddingTop: 16,
+        paddingBottom: 4,
+        backgroundColor: 'white',
+        gap: 10
     },
     headerGroup: {
         alignSelf: 'stretch',
@@ -581,7 +665,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 6,
     },
     locationContainer: {
-        marginTop: 16,
+        marginTop: 14,
         marginBottom: 8,
         paddingHorizontal: 0,
     },
@@ -591,7 +675,7 @@ const styles = StyleSheet.create({
         color: THEME.slate400,
         textTransform: 'uppercase',
         letterSpacing: 0.8,
-        marginBottom: 10,
+        marginBottom: 8,
     },
     locationCard: {
         flexDirection: 'row',
@@ -680,5 +764,29 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#1E293B',
+    },
+    windowGroup: {
+        alignSelf: 'stretch',
+        marginTop: 18,
+        gap: 2,
+    },
+    windowTitle: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: THEME.slate400,
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+        marginBottom: 8,
+    },
+    windowValueText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: THEME.slate700,
+    },
+    windowToleranceText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: THEME.slate400,
+        marginTop: 1,
     },
 });

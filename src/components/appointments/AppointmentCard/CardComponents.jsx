@@ -49,48 +49,48 @@ const styles = StyleSheet.create({
         paddingVertical: 2, // padding-top: 2px; padding-bottom: 2px;
     }, 
     rowLabel: {
-        fontSize: 14, // font-size: 14px
-        color: THEME.slate400, // color
-        fontWeight: '500', // font-weight: 500
+        fontSize: 14,
+        color: THEME.slate400,
+        fontWeight: '500',
         textTransform: 'capitalize',
     }, 
     rowValue: {
-        fontSize: 14, // font-size: 14px
-        color: THEME.slate900, // color
-        fontWeight: '600' // font-weight: 600
+        fontSize: 14,
+        color: THEME.slate900,
+        fontWeight: '600'
     },
 
     // Estilos para o componente Header
     headerContainer: {
-        marginBottom: 5, // adjusted to 5px
+        marginBottom: 5,
     },
     headerLabel: {
-        fontSize: 14, // font-size: 14px
-        color: THEME.slate400, // color
-        fontWeight: '500', // font-weight: 500
-        marginBottom: 0, // decreased from 2px to 0px
+        fontSize: 14,
+        color: THEME.slate400,
+        fontWeight: '500',
+        marginBottom: 0,
         textTransform: 'capitalize',
     },
     headerValue: {
-        fontSize: 22, // font-size: 22px
-        fontWeight: '800', // font-weight: 800
-        color: THEME.slate900, // color
+        fontSize: 22,
+        fontWeight: '800',
+        color: THEME.slate900,
     },
 
     // Estilos para o componente SubHeader
     subHeaderContainer: {
-        marginTop: 5, // adjusted to 5px
+        marginTop: 5,
     },
     subHeaderLabel: {
-        fontSize: 14, // font-size: 14px
-        color: THEME.slate400, // color
-        fontWeight: '500', // font-weight: 500
-        marginBottom: 0, // decreased from 2px to 0px
+        fontSize: 14,
+        color: THEME.slate400,
+        fontWeight: '500',
+        marginBottom: 0,
         textTransform: 'capitalize',
     },
     subHeaderValue: {
-        fontSize: 17, // font-size: 17px
-        fontWeight: '500', // font-weight: 500
-        color: THEME.slate600, // color
+        fontSize: 16,
+        fontWeight: '500',
+        color: THEME.slate600,
     }
 });

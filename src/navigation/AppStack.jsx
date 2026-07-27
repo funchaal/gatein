@@ -34,7 +34,60 @@ import { COLORS } from "../constants/colors";
 
 const Stack = createStackNavigator();
 
-const getScreenOptions = ({ navigation }) => ({
+/**
+ * Custom horizontal slide interpolator WITHOUT the parallax shift on the
+ * unfocused (underlying) screen.  The stock forHorizontalIOS moves the
+ * previous card by -30 % during the transition.  When the spring animation
+ * settles (restDisplacementThreshold can still be > 0), that small remaining
+ * offset is snapped to 0 the moment the departing card is removed, which
+ * produces a visible jitter.  Removing the parallax eliminates the problem.
+ */
+const forHorizontalSlide = ({ current, inverted, layouts: { screen } }) => {
+    const { multiply } = require('react-native').Animated;
+    const translateX = multiply(
+        current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [screen.width, 0],
+            extrapolate: 'clamp',
+        }),
+        inverted
+    );
+
+    return {
+        cardStyle: {
+            transform: [{ translateX }],
+        },
+        overlayStyle: {
+            opacity: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.07],
+                extrapolate: 'clamp',
+            }),
+        },
+        shadowStyle: {
+            shadowOpacity: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.3],
+                extrapolate: 'clamp',
+            }),
+        },
+    };
+};
+
+/** Tighter spring so the animation lands exactly at the target position. */
+const smoothSlideSpec = {
+    animation: 'spring',
+    config: {
+        stiffness: 1000,
+        damping: 500,
+        mass: 3,
+        overshootClamping: true,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+    },
+};
+
+const getScreenOptions = () => ({
     headerTitleAlign: 'center',
     headerBackTitleVisible: false,
     headerTintColor: COLORS.primary,
@@ -48,11 +101,11 @@ const getScreenOptions = ({ navigation }) => ({
         shadowOpacity: 0,
         borderBottomWidth: 0,
     },
-    headerLeft: () => {
-        if (!navigation.canGoBack()) return null;
+    headerLeft: (props) => {
+        if (!props?.canGoBack) return null;
         return (
             <TouchableOpacity 
-                onPress={() => navigation.goBack()} 
+                onPress={props.onPress} 
                 style={{
                     marginLeft: 16,
                     width: 36,
@@ -71,7 +124,17 @@ const getScreenOptions = ({ navigation }) => ({
 
 export default function AppStack() {
     return (
-        <Stack.Navigator screenOptions={({ navigation }) => ({ animationEnabled: true, ...getScreenOptions({ navigation }) })}>
+        <Stack.Navigator 
+            screenOptions={{ 
+                gestureDirection: 'horizontal',
+                transitionSpec: {
+                    open: smoothSlideSpec,
+                    close: smoothSlideSpec,
+                },
+                cardStyleInterpolator: forHorizontalSlide,
+                ...getScreenOptions() 
+            }}
+        >
             <Stack.Screen 
                 name="Main" 
                 component={BottomTabNavigator} 

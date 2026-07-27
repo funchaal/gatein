@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -6,7 +6,8 @@ import { COLORS } from "../../constants/colors";
 
 export default function ScreenHeader({ title, showBackButton, rightElement, noBorder = false }) {
     const navigation = useNavigation();
-    const canGoBack = showBackButton !== undefined ? showBackButton : navigation.canGoBack();
+    const canGoBackRef = useRef(navigation.canGoBack());
+    const canGoBack = showBackButton !== undefined ? showBackButton : canGoBackRef.current;
 
     return (
         <View style={[styles.fixedHeader, noBorder && styles.noBorder]}>

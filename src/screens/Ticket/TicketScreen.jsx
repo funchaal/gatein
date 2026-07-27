@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MainAsyncButton from '../../components/ui/MainAsyncButton';
+import CompanyLogo from '../../components/common/CompanyLogo';
 import { selectAllTerminals, selectAllLayouts } from '../../store/slices/companiesSlice';
 import { THEME } from '../../components/appointments/AppointmentCard/constants';
 import { get } from '../../components/appointments/AppointmentCard/utils';
@@ -62,8 +63,8 @@ function TicketPerforation() {
 export default function TicketScreen({ route }) {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(30)).current;
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const slideAnim = useRef(new Animated.Value(0)).current;
     const viewShotRef = useRef();
 
     const appointment = route?.params?.appointment;
@@ -148,18 +149,9 @@ export default function TicketScreen({ route }) {
     };
 
     useEffect(() => {
-        if (activeTicket) {
-            fadeAnim.setValue(0);
-            slideAnim.setValue(15);
-            Animated.parallel([
-                Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-                Animated.spring(slideAnim, { toValue: 0, damping: 18, stiffness: 120, useNativeDriver: true }),
-            ]).start();
-        } else {
-            fadeAnim.setValue(0);
-            slideAnim.setValue(30);
-        }
-    }, [activeTicket, fadeAnim, slideAnim]);
+        // Fade in suave na montagem inicial da tela
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    }, [fadeAnim]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -271,18 +263,32 @@ export default function TicketScreen({ route }) {
                     </View>
                 )}
 
-                <ViewShot ref={viewShotRef} options={{ format: "png", quality: 0.9 }} style={{ backgroundColor: '#ffffff' }}>
+                <ViewShot ref={viewShotRef} options={{ format: "png", quality: 0.9 }} style={screenStyles.viewShotContainer}>
                     <View style={screenStyles.pageHeader}>
                         <Text style={screenStyles.pageTitle}>Ticket de Acesso</Text>
                     </View>
  
                     {/* Top Info Container */}
                     <View style={screenStyles.topInfoContainer}>
- 
-                        <View style={screenStyles.bookingStrip}>
-                            <Text style={screenStyles.bookingLabel}>Agendamento</Text>
-                            <Text style={screenStyles.bookingId}>#{appointment.ref || '—'}</Text>
-                        </View>
+                        {(() => {
+                            const terminal = terminals?.[appointment?.terminal_id];
+                            const terminalName = terminal?.name || 'Agendamento';
+                            return (
+                                <View style={screenStyles.bookingStrip}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <CompanyLogo
+                                            logoUrl={terminal?.logo_url || appointment?.terminal_logo_url}
+                                            name={terminalName}
+                                            companyId={appointment?.terminal_id}
+                                            size={22}
+                                            style={{ marginRight: 8 }}
+                                        />
+                                        <Text style={screenStyles.bookingLabel}>{terminalName}</Text>
+                                    </View>
+                                    <Text style={screenStyles.bookingId}>#{appointment.ref || '—'}</Text>
+                                </View>
+                            );
+                        })()}
                     </View>
  
                     {renderCardHeader()}

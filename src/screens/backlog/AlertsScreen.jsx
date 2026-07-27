@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
     View,
     Text,
@@ -11,8 +11,11 @@ import {
 } from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { COLORS } from '../../constants/colors';
-import { useFetchNotificationHistoryQuery } from '../../services/api';
 import ListSeparator from '../../components/ui/ListSeparator';
+import {
+    getLocalNotifications,
+    subscribeLocalNotifications
+} from '../../services/localNotificationStorage';
 
 const formatAlertDate = (dateString) => {
     if (!dateString) return '';
@@ -87,13 +90,45 @@ const AlertItem = ({ item, index }) => {
 };
 
 export default function AlertsScreen() {
-    const { data: notifications = [], isLoading, isFetching, refetch } = useFetchNotificationHistoryQuery();
+    const [notifications, setNotifications] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const handleRefresh = useCallback(() => {
-        refetch();
-    }, [refetch]);
+    const loadNotifications = useCallback(async () => {
+        const list = await getLocalNotifications();
+        setNotifications(list);
+    }, []);
 
-    if (isLoading && !isFetching) {
+    useEffect(() => {
+        let isMounted = true;
+        
+        getLocalNotifications().then((list) => {
+            if (isMounted) {
+                setNotifications(list);
+                setIsLoading(false);
+            }
+        });
+
+        // Inscreve-se para atualizar a UI instantaneamente se uma notificação chegar
+        const unsubscribe = subscribeLocalNotifications((updatedList) => {
+            if (isMounted) {
+                setNotifications(updatedList);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
+    }, []);
+
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        await loadNotifications();
+        setIsRefreshing(false);
+    }, [loadNotifications]);
+
+    if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
@@ -116,13 +151,13 @@ export default function AlertsScreen() {
                             </View>
                             <Text style={styles.emptyTitle}>Nenhum alerta</Text>
                             <Text style={styles.emptySubtitle}>
-                                Você não possui novos alertas ou notificações nos últimos 7 dias.
+                                Você ainda não possui alertas salvos neste dispositivo.
                             </Text>
                         </View>
                     }
                     refreshControl={
                         <RefreshControl
-                            refreshing={isFetching}
+                            refreshing={isRefreshing}
                             onRefresh={handleRefresh}
                             colors={[COLORS.primary]}
                             tintColor={COLORS.primary}
@@ -145,7 +180,7 @@ export default function AlertsScreen() {
                 contentContainerStyle={styles.listContainer}
                 refreshControl={
                     <RefreshControl
-                        refreshing={isFetching}
+                        refreshing={isRefreshing}
                         onRefresh={handleRefresh}
                         colors={[COLORS.primary]}
                         tintColor={COLORS.primary}

@@ -1,16 +1,18 @@
 export const STATUS_LABELS_PT_BR = {
     'ACTIVE': 'Agendado',
     'AGENDADO': 'Agendado',
-    'CHECKED-IN': 'No Pátio',
-    'CHECKED_IN': 'No Pátio',
-    'NO PÁTIO': 'No Pátio',
+    'CHECKED-IN': 'Checkin feito',
+    'CHECKED_IN': 'Checkin feito',
+    'CHECKIN FEITO': 'Checkin feito',
+    'NO PÁTIO': 'Checkin feito',
     'ON_GOING': 'Em Andamento',
+    'ONGOING': 'Em Andamento',
     'EM ANDAMENTO': 'Em Andamento',
     'PAUSED': 'Pausado',
     'PAUSADO': 'Pausado',
     'COMPLETED': 'Concluído',
     'CONCLUÍDO': 'Concluído',
-    'FINALIZADO': 'Finalizado',
+    'FINALIZADO': 'Concluído',
     'CANCELLED': 'Cancelado',
     'CANCELADO': 'Cancelado',
     'DEACTIVATED': 'Desativado',
@@ -21,10 +23,45 @@ export const STATUS_LABELS_PT_BR = {
     'PLANNED': 'Planejado',
 };
 
-export const translateStatus = (status) => {
+export const translateStatus = (status, countdownPhase = null) => {
     if (!status) return 'Desconhecido';
     const safeStatus = status.toString().toUpperCase();
+    if ((safeStatus === 'ACTIVE' || safeStatus === 'AGENDADO') && countdownPhase === 'window') {
+        return 'Janela Aberta';
+    }
     return STATUS_LABELS_PT_BR[safeStatus] || status;
+};
+
+export const getStatusDisplay = (status, countdownPhase = null, statusTagsConfig = null) => {
+    if (!status) return { text: 'DESCONHECIDO', color: '#64748B', bg: '#F1F5F9' };
+    const safeStatus = status.toString().toUpperCase();
+
+    // Regra: se for ACTIVE/AGENDADO e estiver dentro da janela -> "JANELA ABERTA" (mantendo a cor original do status)
+    const isWindowOpen = (safeStatus === 'ACTIVE' || safeStatus === 'AGENDADO') && countdownPhase === 'window';
+    const text = isWindowOpen ? 'JANELA ABERTA' : (STATUS_LABELS_PT_BR[safeStatus] || status).toUpperCase();
+
+    // Se houver configuração de tag customizada
+    const customColor = resolveStatusColor(status, statusTagsConfig);
+    if (customColor && customColor !== getStatusColor(safeStatus)) {
+        return { text, color: customColor, bg: customColor + '20' };
+    }
+
+    // Cores padrão refinadas por categoria de status
+    if (safeStatus === 'ACTIVE' || safeStatus === 'AGENDADO' || safeStatus === 'PLANNED') {
+        return { text, color: '#2563eb', bg: '#dbeafe' };
+    }
+    if (safeStatus === 'COMPLETED' || safeStatus === 'CONCLUÍDO' || safeStatus === 'FINALIZADO') {
+        return { text, color: '#059669', bg: '#d1fae5' };
+    }
+    if (safeStatus === 'DEACTIVATED' || safeStatus === 'DESATIVADO' || safeStatus === 'CANCELLED' || safeStatus === 'CANCELADO' || safeStatus === 'OVERDUE' || safeStatus === 'EXPIRED' || safeStatus === 'ATRASADO') {
+        return { text, color: '#b91c1c', bg: '#fee2e2' };
+    }
+    if (safeStatus === 'CHECKED-IN' || safeStatus === 'CHECKED_IN' || safeStatus === 'NO PÁTIO' || safeStatus === 'ON_GOING' || safeStatus === 'EM ANDAMENTO' || safeStatus === 'PAUSED' || safeStatus === 'PAUSADO') {
+        return { text, color: '#d97706', bg: '#fef3c7' };
+    }
+
+    const fallbackColor = getStatusColor(safeStatus);
+    return { text, color: fallbackColor, bg: fallbackColor + '20' };
 };
 
 export const getStatusColor = (status) => {
@@ -78,13 +115,23 @@ export const getValue = (item, key) => {
     // Primeiro tenta em custom_data
     if (item.custom_data && item.custom_data[key] !== undefined && item.custom_data[key] !== null && item.custom_data[key] !== '') {
         const val = item.custom_data[key];
-        return (val && typeof val === 'object') ? null : val;
+        if (val && typeof val !== 'object') return val;
     }
     
     // Depois tenta diretamente no item
     if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
         const val = item[key];
-        return (val && typeof val === 'object') ? null : val;
+        if (val && typeof val !== 'object') return val;
+    }
+
+    // Suporte a campos de origem/destino de viagens
+    if (key === 'origin_city') {
+        const val = item.from || item.origin_city || (typeof item.origin === 'object' ? item.origin?.city : item.origin) || item.custom_data?.origin_city;
+        if (val && typeof val === 'string') return val;
+    }
+    if (key === 'destination_city') {
+        const val = item.to || item.destination_city || (typeof item.destiny === 'object' ? item.destiny?.city : item.destiny) || item.custom_data?.destination_city;
+        if (val && typeof val === 'string') return val;
     }
     
     return null;

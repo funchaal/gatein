@@ -16,39 +16,43 @@ export const styles = StyleSheet.create({
         borderColor: '#CBD5E1', // border-color: #CBD5E1
     },
 
-    // Linha do Cabeçalho (Data e ID)
-    headerRow: {
-        flexDirection: 'row', // display: flex; flex-direction: row;
-        justifyContent: 'space-between', // justify-content: space-between;
-        alignItems: 'center', // align-items: center;
-        marginBottom: 10, // margin-bottom: 10px
+    topTagRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    statusAndRefRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    dayTagText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#475569',
     },
     dateText: {
-        fontSize: 14, // font-size: 14px
-        fontWeight: '700', // font-weight: 700
-        color: THEME.slate600, // color: #475569
-        letterSpacing: 0.2, // letter-spacing: 0.2px
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#64748b',
+        letterSpacing: 0.2,
     },
     idText: {
-        fontSize: 14, // font-size: 14px
-        fontWeight: '500', // font-weight: 500
-        color: THEME.slate400, // color: #94A3B8
+        fontSize: 14,
+        fontWeight: '500',
+        color: THEME.slate400,
     },
 
     countdownBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffedd5', // orange-100
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
     },
-    countdownBadgeWindow: {
-        backgroundColor: '#dcfce7', // green-100
-    },
+    countdownBadgeWindow: {},
     countdownText: {
         fontSize: 13,
-        fontWeight: '700',
+        fontWeight: '600',
         color: '#c2410c', // orange-700
     },
     countdownTextWindow: {
@@ -59,7 +63,7 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 12,
     },
     companyInfo: {
         flexDirection: 'row',
@@ -87,10 +91,9 @@ export const styles = StyleSheet.create({
         color: '#64748b',
     },
     companyNameText: {
-        fontSize: 13,
+        fontSize: 12, // reduzido levemente de 13px para 12px
         fontWeight: '500',
         color: '#64748b',
-        marginLeft: 8,
         flex: 1,
     },
     titlesRow: {
@@ -118,10 +121,9 @@ export const styles = StyleSheet.create({
 
     // Badge de Status
     badge: {
-        paddingHorizontal: 10, // padding-left: 10px; padding-right: 10px;
-        paddingVertical: 4, // padding-top: 4px; padding-bottom: 4px;
-        borderRadius: 8, // border-radius: 8px
-        marginLeft: 12, // margin-left: 12px
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
     },
     badgeText: {
         fontSize: 12, // font-size: 12px
@@ -160,30 +162,22 @@ export const styles = StyleSheet.create({
     cardRouteRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         marginBottom: 8,
         marginTop: 4,
+    },
+    cardDestinationIcon: {
+        marginRight: 6,
+    },
+    cardDestinationLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#64748b',
+        marginRight: 2,
     },
     cardRouteCity: {
         fontSize: 14,
         fontWeight: '700',
         color: '#1e293b',
-        maxWidth: '40%',
-    },
-    cardRoutePathContainer: {
         flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 8,
-    },
-    cardRouteLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: '#cbd5e1',
-        marginHorizontal: 6,
-    },
-    cardRouteIcon: {
-        marginHorizontal: 4,
     }
 });
