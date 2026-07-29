@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, Pressable, Dimensions, Animated, ScrollView, Platform, Linking, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -82,6 +83,7 @@ const formatFullDateTimeWindow = (startStr, endStr) => {
 
 export default function AppointmentDetailsModal() {
     const dispatch = useDispatch();
+    const navigation = useNavigation();
     const selectionData = useSelector(selectSelectedAppointment);
     const appointment = selectionData?.appointment;
     const config = selectionData?.config;
@@ -457,6 +459,21 @@ export default function AppointmentDetailsModal() {
                                 <Text style={styles.idText}>#{displayId}</Text>
                             </View>
 
+                            {localAppointment?.is_safety_integration_pending && (
+                                <Pressable
+                                    style={styles.safetyIntegrationBtn}
+                                    onPress={() => {
+                                        setShowModal(false);
+                                        navigation.navigate('SafetyIntegration', { terminal_id: localAppointment.terminal_id });
+                                    }}
+                                >
+                                    <Text style={styles.safetyIntegrationBtnText}>
+                                        Ver vídeo de integração obrigatória online
+                                    </Text>
+                                    <Icon name="arrow-right" size={16} color="#fff" style={{ marginLeft: 6 }} />
+                                </Pressable>
+                            )}
+
                             {renderCardHeader()}
                             {renderLocationSection()}
                             {effectiveConfig?.card_layout && <View style={styles.dividerContainer} />}
@@ -477,6 +494,22 @@ export default function AppointmentDetailsModal() {
 }
 
 const styles = StyleSheet.create({
+    safetyIntegrationBtn: {
+        backgroundColor: '#1d4ed8',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        marginHorizontal: 24,
+        marginBottom: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    safetyIntegrationBtnText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+    },
     gestureRoot: { flex: 1 },
     // Overlay e Background
     overlay: { flex: 1, justifyContent: 'flex-end' }, // display: flex; justify-content: flex-end;

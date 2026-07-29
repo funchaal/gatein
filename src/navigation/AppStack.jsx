@@ -16,6 +16,7 @@ import CheckinFail from '../screens/CheckinFail';
 import ServicesScreen from '../screens/Services';
 import CompanyServicesScreen from '../screens/CompanyServices';
 import ServiceWebViewScreen from '../screens/ServiceWebView';
+import SafetyIntegrationScreen from '../screens/SafetyIntegration/SafetyIntegrationScreen';
 
 import SecurityScreen from '../screens/Security/SecurityScreen';
 import ResetPasswordScreen from '../screens/Security/ResetPasswordScreen';
@@ -255,6 +256,11 @@ export default function AppStack() {
                     headerShown: false,
                     gestureEnabled: false 
                 }} 
+            />
+            <Stack.Screen 
+                name="SafetyIntegration" 
+                component={SafetyIntegrationScreen} 
+                options={{ headerShown: false }} 
             />
         </Stack.Navigator>
     );

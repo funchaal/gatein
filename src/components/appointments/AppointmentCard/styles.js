@@ -16,6 +16,24 @@ export const styles = StyleSheet.create({
         borderColor: '#CBD5E1', // border-color: #CBD5E1
     },
 
+    safetyIntegrationTag: {
+        backgroundColor: '#eff6ff', // blue-50
+        borderRadius: 8,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        marginBottom: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#bfdbfe', // blue-200
+        flexDirection: 'row',
+    },
+    safetyIntegrationText: {
+        color: '#1d4ed8', // blue-700
+        fontSize: 12,
+        fontWeight: '600',
+    },
+
     topTagRow: {
         flexDirection: 'row',
         alignItems: 'center',

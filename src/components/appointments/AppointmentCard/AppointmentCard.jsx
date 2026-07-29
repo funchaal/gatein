@@ -83,6 +83,14 @@ export default function AppointmentCard({ item, config, company, hideRows }) {
             onPress={handlePress}
             key={item.ref || item.id}
         >
+            {/* Integração Obrigatória Pendente */}
+            {item?.is_safety_integration_pending && (
+                <View style={styles.safetyIntegrationTag}>
+                    <Icon name="shield-alert-outline" size={14} color="#1d4ed8" style={{ marginRight: 6 }} />
+                    <Text style={styles.safetyIntegrationText}>Integração obrigatória pendente, clique para realizar</Text>
+                </View>
+            )}
+
             {/* Topo do card: Tag no lado esquerdo ("Hoje", "Sábado", "Até 18:30 para entrar", etc.) e Data resumida no lado direito (ex: 27/06 18:00) */}
             <View style={styles.topTagRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>

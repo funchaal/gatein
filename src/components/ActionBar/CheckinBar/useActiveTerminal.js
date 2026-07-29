@@ -68,7 +68,16 @@ export const useActiveTerminal = () => {
         const windowOpen = startMs - (startTol * 60_000);
         const windowClose = endMs + (endTol * 60_000);
 
-        return now >= windowOpen && now <= windowClose;
+        const inWindow = now >= windowOpen && now <= windowClose;
+        if (!inWindow) return false;
+
+        // Se o terminal bloqueia check-in por integração pendente
+        const terminalConfig = terminalsDict[terminalId]?.config || {};
+        if (terminalConfig.safety_integration_blocks_checkin && item.is_safety_integration_pending) {
+          return false;
+        }
+
+        return true;
       });
     };
 

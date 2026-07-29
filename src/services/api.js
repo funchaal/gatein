@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { secureStorage } from './secureStorage';
 import { getDeviceId } from './deviceInfo';
 import uuid from 'react-native-uuid';
-import { API_BASE_URL, API_BASE_URL_DEV, PROD, CHECKIN_TIMEOUT } from '@env';
+import { API_BASE_URL_PROD, API_BASE_URL_HOMOLOG, API_BASE_URL_DEV, ENVIRONMENT, CHECKIN_TIMEOUT } from '@env';
 import {
   activityAPICall,
   chatsAPICall,
@@ -12,11 +12,16 @@ import {
   getDocument
 } from './mockData';
 
-// Resolve a URL base de acordo com o ambiente
-// PROD=true  → usa API_BASE_URL  (produção)
-// PROD=false → usa API_BASE_URL_DEV (staging/dev local)
-const IS_PROD = PROD === 'true' || PROD === 'True' || PROD === '1';
-const resolvedBaseUrl = IS_PROD ? API_BASE_URL : API_BASE_URL_DEV;
+// Resolve a URL base de acordo com o ambiente ENVIRONMENT
+// ENVIRONMENT: 'production' | 'homologation' | 'development'
+const getBaseUrl = () => {
+  const env = (ENVIRONMENT || 'development').toLowerCase();
+  if (env === 'production') return API_BASE_URL_PROD || 'https://api.gatein.com.br/api/mobile';
+  if (env === 'homologation') return API_BASE_URL_HOMOLOG || 'https://homolog-api.gatein.com.br/api/mobile';
+  return API_BASE_URL_DEV || 'http://192.168.0.3:8000/api/mobile';
+};
+
+const resolvedBaseUrl = getBaseUrl();
 
 export const api = createApi({
   reducerPath: 'api',
