@@ -1,6 +1,6 @@
 import * as Keychain from 'react-native-keychain';
 
-const SERVICE_NAME = 'com.yourapp.auth';
+const SERVICE_NAME = 'com.gatein.auth';
 
 export const secureStorage = {
   /**

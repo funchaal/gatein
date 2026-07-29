@@ -3,14 +3,7 @@ import { secureStorage } from './secureStorage';
 import { getDeviceId } from './deviceInfo';
 import uuid from 'react-native-uuid';
 import { API_BASE_URL_PROD, API_BASE_URL_HOMOLOG, API_BASE_URL_DEV, ENVIRONMENT, CHECKIN_TIMEOUT } from '@env';
-import {
-  activityAPICall,
-  chatsAPICall,
-  deleteRegistration,
-  uploadDocument,
-  validateDocument,
-  getDocument
-} from './mockData';
+
 
 // Resolve a URL base de acordo com o ambiente ENVIRONMENT
 // ENVIRONMENT: 'production' | 'homologation' | 'development'
@@ -29,15 +22,16 @@ export const api = createApi({
     baseUrl: resolvedBaseUrl,
 
     prepareHeaders: async (headers) => {
+      const isDev = (ENVIRONMENT || 'development').toLowerCase() === 'development';
       const token = await secureStorage.getToken();
-      console.log({ token })
+      if (isDev) console.log({ token });
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
 
       // 2. Injeta o Device ID
       const deviceId = await getDeviceId();
-      console.log({ deviceId })
+      if (isDev) console.log({ deviceId });
       if (deviceId) {
         headers.set('X-Device-ID', deviceId); // O nome tem que bater com o alias do FastAPI
       }
@@ -140,24 +134,14 @@ export const api = createApi({
 
     // --- CHAT ---
     fetchChatData: builder.query({
-      queryFn: async (userId) => {
-        try {
-          const response = await chatsAPICall(userId);
-          return { data: response.data };
-        } catch (error) {
-          return { error: error.message };
-        }
+      queryFn: async () => {
+        return { data: [] };
       },
       providesTags: ['Chat']
     }),
     sendMessageToServer: builder.mutation({
       queryFn: async () => {
-        try {
-          const response = await chatsAPICall('driver_me');
-          return { data: response.data };
-        } catch (error) {
-          return { error: error.message };
-        }
+        return { data: [] };
       },
       invalidatesTags: ['Chat']
     }),

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import CompanyLogo from './CompanyLogo';
+import CompanyLogo from '../common/CompanyLogo';
 
 export default function ListItem({ onPress, title, titleStyle, subtitles = [], rightElement, logoUrl, leftElement, hideLeft }) {
     return (

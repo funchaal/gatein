@@ -7,7 +7,7 @@ import BottomTabNavigator from './BottomTabNavigator';
 
 // Telas principais (Área Logada)
 import MapScreen from '../screens/Map';
-import AlertsScreen from '../screens/backlog/AlertsScreen';
+import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import TicketScreen from "../screens/Ticket";
 import TicketsListScreen from "../screens/Ticket/TicketsListScreen";
 import CheckinProcessingScreen from '../screens/CheckinProcessing';
@@ -147,9 +147,9 @@ export default function AppStack() {
                 options={{ headerShown: false }} 
             />
             <Stack.Screen 
-                name="Alerts" 
-                component={AlertsScreen} 
-                options={{ title: 'Alertas' }} 
+                name="Notifications" 
+                component={NotificationsScreen} 
+                options={{ title: 'Notificações' }} 
             />
             <Stack.Screen 
                 name="TicketsList" 

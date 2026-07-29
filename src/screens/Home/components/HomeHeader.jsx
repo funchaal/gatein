@@ -18,7 +18,7 @@ export default function HomeHeader() {
           <Text style={styles.driverName}>Rafael Funchal</Text>
         </View>
         <View style={styles.icons}>
-          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Alerts')}>
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Notifications')}>
             <Icon name="bell" size={20} color="#F97316" />
           </Pressable>
         </View>

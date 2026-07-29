@@ -17,7 +17,7 @@ import {
     subscribeLocalNotifications
 } from '../../services/localNotificationStorage';
 
-const formatAlertDate = (dateString) => {
+const formatNotificationDate = (dateString) => {
     if (!dateString) return '';
     try {
         const date = new Date(dateString);
@@ -61,7 +61,7 @@ const formatAlertDate = (dateString) => {
     }
 };
 
-const AlertItem = ({ item, index }) => {
+const NotificationItem = ({ item, index }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     
     useEffect(() => {
@@ -81,7 +81,7 @@ const AlertItem = ({ item, index }) => {
             <View style={styles.infoContainer}>
                 <View style={styles.rowHeader}>
                     <Text style={styles.rowTitle}>{item.title}</Text>
-                    <Text style={styles.rowTime}>{formatAlertDate(item.created_at)}</Text>
+                    <Text style={styles.rowTime}>{formatNotificationDate(item.created_at)}</Text>
                 </View>
                 <Text style={styles.rowBody}>{item.body}</Text>
             </View>
@@ -89,7 +89,7 @@ const AlertItem = ({ item, index }) => {
     );
 };
 
-export default function AlertsScreen() {
+export default function NotificationsScreen() {
     const [notifications, setNotifications] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -132,7 +132,7 @@ export default function AlertsScreen() {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Carregando alertas...</Text>
+                <Text style={styles.loadingText}>Carregando notificações...</Text>
             </View>
         );
     }
@@ -149,9 +149,9 @@ export default function AlertsScreen() {
                             <View style={styles.iconWrapper}>
                                 <FeatherIcon name="bell-off" size={40} color={COLORS.primary} />
                             </View>
-                            <Text style={styles.emptyTitle}>Nenhum alerta</Text>
+                            <Text style={styles.emptyTitle}>Nenhuma notificação</Text>
                             <Text style={styles.emptySubtitle}>
-                                Você ainda não possui alertas salvos neste dispositivo.
+                                Você ainda não possui notificações salvas neste dispositivo.
                             </Text>
                         </View>
                     }
@@ -175,7 +175,7 @@ export default function AlertsScreen() {
             <FlatList
                 data={notifications}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item, index }) => <AlertItem item={item} index={index} />}
+                renderItem={({ item, index }) => <NotificationItem item={item} index={index} />}
                 ItemSeparatorComponent={ListSeparator}
                 contentContainerStyle={styles.listContainer}
                 refreshControl={
