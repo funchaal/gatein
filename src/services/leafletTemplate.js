@@ -116,7 +116,7 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
     <script src="data:text/javascript;base64,${LEAFLET_JS_BASE64}"></script>
 
     <script>
-        // Inicia o mapa com configurações otimizadas de drag
+        // Inicia o mapa com configurações otimizadas de drag e rendering
         var map = L.map('map', { 
             zoomControl: false,
             dragging: true,
@@ -130,16 +130,20 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
             inertia: true,
             inertiaDeceleration: 3000,
             inertiaMaxSpeed: Infinity,
-            worldCopyJump: false
+            worldCopyJump: false,
+            preferCanvas: true
         }).setView([0, 0], 16);
         
         window.map = map;
 
-        // Camada do Mapa: CartoDB Light
+        // Camada do Mapa: CartoDB Light — com buffer e carregamento otimizado
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 20,
             subdomains: 'abcd',
-            attribution: '© OSM, © Carto'
+            attribution: '© OSM, © Carto',
+            keepBuffer: 6,
+            updateWhenZooming: false,
+            updateWhenIdle: true
         }).addTo(map);
 
         // Cria ícone compacto estilo navegação (36px)
@@ -429,7 +433,6 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
         }
 
         window.updateMapState = function(lat, lng, heading, followUser, accuracy) {
-            map.invalidateSize(); 
             var newLatLng = new L.LatLng(lat, lng);
             userMarker.setLatLng(newLatLng);
             
@@ -455,7 +458,15 @@ export const generateLeafletHTML = (LEAFLET_CSS, LEAFLET_JS_BASE64) => `
             }
         };
         
-        function animateRotation() {
+        var lastRotationFrame = 0;
+        function animateRotation(timestamp) {
+            // Throttle para ~30fps (33ms entre frames) — bússola não precisa de 60fps
+            if (timestamp - lastRotationFrame < 33) {
+                requestAnimationFrame(animateRotation);
+                return;
+            }
+            lastRotationFrame = timestamp;
+
             var iconElement = userMarker.getElement();
             if (iconElement && currentRotation !== null) {
                 var circle = iconElement.querySelector('.marker-circle');

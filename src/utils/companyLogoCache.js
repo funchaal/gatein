@@ -224,6 +224,24 @@ export const syncCompanyLogoCache = async (companies) => {
  * @param {string} name
  * @returns {Promise<string|null>}
  */
+/**
+ * Clears the entire company logo cache (manifest + all stored images).
+ * Call this on logout to prevent stale logos from appearing after
+ * a database reset or account switch.
+ */
+export const clearCompanyLogoCache = async () => {
+  try {
+    const manifest = await readManifest();
+    if (manifest.length > 0) {
+      const imgKeys = manifest.map((e) => `${IMG_PREFIX}${e.key}`);
+      await AsyncStorage.multiRemove(imgKeys);
+    }
+    await AsyncStorage.removeItem(MANIFEST_KEY);
+  } catch (error) {
+    console.error('[CompanyLogoCache] Error clearing cache:', error);
+  }
+};
+
 export const getCachedCompanyLogo = async (company_id, name) => {
   if (!company_id) return null;
   try {

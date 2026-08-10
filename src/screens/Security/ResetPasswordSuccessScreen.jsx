@@ -20,9 +20,9 @@ export default function ResetPasswordSuccessScreen() {
             return true; // Retornar true bloqueia o evento padrão
         };
         
-        BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-        return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        return () => subscription.remove();
     }, []);
 
     const handleOkPress = () => {

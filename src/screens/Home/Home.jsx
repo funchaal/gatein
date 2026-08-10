@@ -27,6 +27,13 @@ export default function HomeScreen() {
         </View>
     );
 
+    const homeEmptyState = {
+        icon: "calendar-clock-outline",
+        title: "Sem operações futuras por enquanto",
+        subtitle: "Seus próximos agendamentos e viagens aparecerão aqui.",
+        isDiscreet: true,
+    };
+
     return (
         <ScreenWrapper noPadding={true}>
             <ActivityList 
@@ -35,6 +42,7 @@ export default function HomeScreen() {
                 scrollable={true}
                 ListHeaderComponent={renderHomeHeader()}
                 contentContainerStyle={styles.scrollContent}
+                emptyState={homeEmptyState}
             />
         </ScreenWrapper>
     );

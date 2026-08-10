@@ -81,14 +81,26 @@ export const useCompass = () => {
         setUpdateIntervalForType(SensorTypes.magnetometer, 16);
         setUpdateIntervalForType(SensorTypes.accelerometer, 16);
 
-        magnetometerSubscription = magnetometer.subscribe(({ x, y, z }) => {
-            magnetometerData.current = { x, y, z };
-            calculateHeading();
-        });
+        magnetometerSubscription = magnetometer.subscribe(
+            ({ x, y, z }) => {
+                magnetometerData.current = { x, y, z };
+                calculateHeading();
+            },
+            (error) => {
+                // Silencia erro se o sensor de bússola não estiver disponível (ex: emuladores ou aparelhos sem magnetômetro)
+                // console.log('Magnetômetro não disponível:', error);
+            }
+        );
 
-        accelerometerSubscription = accelerometer.subscribe(({ x, y, z }) => {
-            accelerometerData.current = { x, y, z };
-        });
+        accelerometerSubscription = accelerometer.subscribe(
+            ({ x, y, z }) => {
+                accelerometerData.current = { x, y, z };
+            },
+            (error) => {
+                // Silencia erro se o acelerômetro não estiver disponível
+                // console.log('Acelerômetro não disponível:', error);
+            }
+        );
 
         return () => {
             if (magnetometerSubscription) magnetometerSubscription.unsubscribe();

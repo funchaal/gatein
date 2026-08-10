@@ -3,9 +3,8 @@ import { View, Text, StyleSheet, Pressable, BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import MainAsyncButton from '../../components/ui/MainAsyncButton';
-import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../../constants/colors';
-import { globalStyles } from '../../constants/styles';
 import { useDispatch } from 'react-redux';
 import { dismissEmailPrompt } from '../../store/slices/authSlice';
 
@@ -18,8 +17,8 @@ export default function EmailPromptScreen() {
         const onBackPress = () => {
             return true;
         };
-        BackHandler.addEventListener('hardwareBackPress', onBackPress);
-        return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => subscription.remove();
     }, []);
 
     const handleAddPress = () => {
@@ -29,19 +28,37 @@ export default function EmailPromptScreen() {
 
     const handleSkipPress = () => {
         dispatch(dismissEmailPrompt());
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            navigation.navigate('Main');
+        }
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper style={styles.wrapper}>
             <View style={styles.container}>
                 <View style={styles.content}>
                     <View style={styles.iconBadge}>
-                        <Icon name="mail-unread-outline" size={38} color={COLORS.primary} />
+                        <MaterialCommunityIcons name="email-fast-outline" size={42} color={COLORS.primary} />
                     </View>
-                    <Text style={[globalStyles.title, styles.title]}>E-mail de contato</Text>
-                    <Text style={[globalStyles.subtitle, styles.subtitle]}>
-                        Adicione um endereço de e-mail à sua conta. É muito importante manter seus dados de contato atualizados para comunicações e segurança.
+                    
+                    <Text style={styles.title}>Adicione seu e-mail</Text>
+                    <Text style={styles.subtitle}>
+                        Cadastre um endereço de e-mail de contato para manter sua conta protegida e acompanhar suas operações.
                     </Text>
+
+                    <View style={styles.benefitsCard}>
+                        <View style={styles.benefitRow}>
+                            <MaterialCommunityIcons name="shield-check-outline" size={22} color={COLORS.primary} style={styles.benefitIcon} />
+                            <Text style={styles.benefitText}>Mais segurança e facilidade na recuperação da conta</Text>
+                        </View>
+                        <View style={styles.benefitDivider} />
+                        <View style={styles.benefitRow}>
+                            <MaterialCommunityIcons name="bell-ring-outline" size={22} color={COLORS.primary} style={styles.benefitIcon} />
+                            <Text style={styles.benefitText}>Receba notificações e comprovantes das operações</Text>
+                        </View>
+                    </View>
                 </View>
                 
                 <View style={styles.buttonWrapper}>
@@ -51,10 +68,13 @@ export default function EmailPromptScreen() {
                     />
                     <View style={{ height: 12 }} />
                     <Pressable 
-                        style={[globalStyles.outlineButton, { height: 56, borderColor: '#94A3B8' }]} 
+                        style={({ pressed }) => [
+                            styles.skipButton,
+                            pressed && { opacity: 0.7, backgroundColor: '#F1F5F9' }
+                        ]} 
                         onPress={handleSkipPress}
                     >
-                        <Text style={[globalStyles.outlineButtonText, { color: '#64748B' }]}>Pular por enquanto</Text>
+                        <Text style={styles.skipButtonText}>Pular por enquanto</Text>
                     </Pressable>
                 </View>
             </View>
@@ -63,37 +83,89 @@ export default function EmailPromptScreen() {
 }
 
 const styles = StyleSheet.create({
+    wrapper: {
+        backgroundColor: '#FFFFFF',
+    },
     container: {
         flex: 1,
         justifyContent: 'space-between',
-        paddingVertical: 10,
+        paddingVertical: 16,
     },
     content: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        paddingHorizontal: 8,
     },
     iconBadge: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        backgroundColor: `${COLORS.primary}18`,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(249, 115, 22, 0.10)',
+        borderWidth: 1,
+        borderColor: 'rgba(249, 115, 22, 0.20)',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 24,
+        marginBottom: 20,
     },
     title: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#0F172A',
         textAlign: 'center',
-        maxWidth: '100%',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     subtitle: {
-        textAlign: 'center',
-        maxWidth: '90%',
+        fontSize: 15,
         lineHeight: 22,
+        color: '#64748B',
+        textAlign: 'center',
+        maxWidth: '92%',
+        marginBottom: 28,
+    },
+    benefitsCard: {
+        width: '100%',
+        backgroundColor: '#F8FAFC',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    benefitRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    benefitIcon: {
+        marginRight: 12,
+    },
+    benefitText: {
+        flex: 1,
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#334155',
+        fontWeight: '500',
+    },
+    benefitDivider: {
+        height: 1,
+        backgroundColor: '#E2E8F0',
+        marginVertical: 12,
     },
     buttonWrapper: {
         width: '100%',
-        paddingBottom: 24,
-    }
+        paddingBottom: 16,
+    },
+    skipButton: {
+        height: 52,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#CBD5E1',
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    skipButtonText: {
+        color: '#475569',
+        fontSize: 15,
+        fontWeight: '600',
+    },
 });

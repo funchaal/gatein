@@ -8,6 +8,7 @@ import BottomTabNavigator from './BottomTabNavigator';
 // Telas principais (Área Logada)
 import MapScreen from '../screens/Map';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
+import RequestsScreen from '../screens/Requests/RequestsScreen';
 import TicketScreen from "../screens/Ticket";
 import TicketsListScreen from "../screens/Ticket/TicketsListScreen";
 import CheckinProcessingScreen from '../screens/CheckinProcessing';
@@ -17,6 +18,11 @@ import ServicesScreen from '../screens/Services';
 import CompanyServicesScreen from '../screens/CompanyServices';
 import ServiceWebViewScreen from '../screens/ServiceWebView';
 import SafetyIntegrationScreen from '../screens/SafetyIntegration/SafetyIntegrationScreen';
+import SubmissionsListScreen from '../screens/Submissions/SubmissionsListScreen';
+import SubmissionCompanySelectScreen from '../screens/Submissions/SubmissionCompanySelectScreen';
+import SubmissionTypeSelectScreen from '../screens/Submissions/SubmissionTypeSelectScreen';
+import SubmissionFormScreen from '../screens/Submissions/SubmissionFormScreen';
+import SubmissionDetailScreen from '../screens/Submissions/SubmissionDetailScreen';
 
 import SecurityScreen from '../screens/Security/SecurityScreen';
 import ResetPasswordScreen from '../screens/Security/ResetPasswordScreen';
@@ -25,6 +31,7 @@ import ForgotPasswordScreen from '../screens/Security/ForgotPasswordScreen';
 import ForgotPasswordCodeScreen from '../screens/Security/ForgotPasswordCodeScreen';
 
 import PersonalDataScreen from '../screens/Profile/PersonalDataScreen';
+import LocationSimulatorScreen from '../screens/Profile/LocationSimulatorScreen';
 import EmailInputScreen from '../screens/Profile/EmailInputScreen';
 import EmailCodeScreen from '../screens/Profile/EmailCodeScreen';
 import EmailPromptScreen from '../screens/Profile/EmailPromptScreen';
@@ -152,9 +159,39 @@ export default function AppStack() {
                 options={{ title: 'Notificações' }} 
             />
             <Stack.Screen 
+                name="Requests" 
+                component={RequestsScreen} 
+                options={{ title: 'Solicitações' }} 
+            />
+            <Stack.Screen 
                 name="TicketsList" 
                 component={TicketsListScreen} 
                 options={{ title: 'Meus Tickets' }} 
+            />
+            <Stack.Screen 
+                name="SubmissionsList" 
+                component={SubmissionsListScreen} 
+                options={{ title: 'Meus Envios' }} 
+            />
+            <Stack.Screen 
+                name="SubmissionCompanySelect" 
+                component={SubmissionCompanySelectScreen} 
+                options={{ title: 'Selecionar Empresa' }} 
+            />
+            <Stack.Screen 
+                name="SubmissionTypeSelect" 
+                component={SubmissionTypeSelectScreen} 
+                options={{ title: 'Tipo de Envio' }} 
+            />
+            <Stack.Screen 
+                name="SubmissionForm" 
+                component={SubmissionFormScreen} 
+                options={{ title: 'Formulário de Envio' }} 
+            />
+            <Stack.Screen 
+                name="SubmissionDetail" 
+                component={SubmissionDetailScreen} 
+                options={{ title: 'Detalhe do Envio' }} 
             />
             <Stack.Screen 
                 name='Ticket' 
@@ -219,6 +256,11 @@ export default function AppStack() {
             <Stack.Screen 
                 name="PersonalData" 
                 component={PersonalDataScreen} 
+                options={{ headerShown: false }} 
+            />
+            <Stack.Screen 
+                name="LocationSimulator" 
+                component={LocationSimulatorScreen} 
                 options={{ headerShown: false }} 
             />
             <Stack.Screen 

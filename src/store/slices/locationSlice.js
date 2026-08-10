@@ -5,16 +5,33 @@ const locationSlice = createSlice({
   initialState: {
     coords: null,
     error: null,
+    isSimulating: false,
+    simulatedCoords: null,
   },
   reducers: {
     updateLocation: (state, action) => {
-      state.coords = action.payload;
+      // Se não estiver simulando ou se for uma atualização de simulação forçada
+      if (!state.isSimulating || action.payload.isSimulated) {
+        state.coords = action.payload;
+      }
     },
     setLocationError: (state, action) => {
       state.error = action.payload;
     },
+    setSimulating: (state, action) => {
+      state.isSimulating = action.payload;
+      if (action.payload && state.simulatedCoords) {
+        state.coords = { ...state.simulatedCoords, isSimulated: true };
+      }
+    },
+    updateSimulatedLocation: (state, action) => {
+      state.simulatedCoords = action.payload;
+      if (state.isSimulating) {
+        state.coords = { ...action.payload, isSimulated: true };
+      }
+    },
   },
 });
 
-export const { updateLocation, setLocationError } = locationSlice.actions;
+export const { updateLocation, setLocationError, setSimulating, updateSimulatedLocation } = locationSlice.actions;
 export default locationSlice.reducer;

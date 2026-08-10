@@ -12,7 +12,7 @@ import companiesReducer from './slices/companiesSlice';
 import registerReducer from './slices/registerSlice';
 import locationSlice from './slices/locationSlice';
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   [api.reducerPath]: api.reducer,
   [servicesApi.reducerPath]: servicesApi.reducer,
   auth: authReducer,
@@ -22,6 +22,22 @@ const rootReducer = combineReducers({
   register: registerReducer,
   location: locationSlice
 });
+
+// Wrapper que reseta TODO o estado persistido no logout,
+// garantindo que dados antigos (empresas, logos, etc.) não sobrevivam entre sessões.
+const rootReducer = (state, action) => {
+  if (action.type === 'auth/logout') {
+    // Preserva apenas o savedTaxId para conveniência de login
+    const savedTaxId = state?.auth?.savedTaxId;
+    // Limpa o estado do AsyncStorage (redux-persist)
+    AsyncStorage.removeItem('persist:root').catch(() => {});
+    // Reseta tudo e mantém só o savedTaxId
+    state = {
+      auth: { savedTaxId }
+    };
+  }
+  return appReducer(state, action);
+};
 
 // Configuração do Redux Persist
 // IMPORTANTE: token e tax_id NÃO são persistidos aqui

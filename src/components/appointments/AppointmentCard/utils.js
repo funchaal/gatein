@@ -100,12 +100,14 @@ export const getStatusColor = (status) => {
 export const formatDate = (dateString) => {
     if (!dateString) return '--/--';
     try {
-        const date = new Date(dateString);
+        const isoString = typeof dateString === 'string' ? dateString.replace(' ', 'T') : dateString;
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return String(dateString);
         return new Intl.DateTimeFormat('pt-BR', { 
             day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
         }).format(date);
     } catch (e) {
-        return dateString; // Retorna original se falhar
+        return String(dateString);
     }
 };
 

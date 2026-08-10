@@ -12,6 +12,7 @@
     "clean:android": "powershell -Command \"rmdir -Recurse -Force android/app/.cxx, android/app/build, android/build, npm install; cd android; ./gradlew clean; cd ..; npx react-native start --reset-cache\""
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/geolocation": "^3.4.0",
     "@react-native-documents/picker": "^11.0.3",
@@ -30,6 +31,7 @@
     "react-native-bootsplash": "^6.3.11",
     "react-native-device-info": "^15.0.1",
     "react-native-gesture-handler": "^2.30.0",
+    "react-native-image-picker": "^8.2.1",
     "react-native-keychain": "^10.0.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-permissions": "^5.4.4",

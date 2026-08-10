@@ -63,9 +63,31 @@ const companiesSlice = createSlice({
       state.layouts.trip = { ...state.layouts.trip, ...layouts.trip };
     });
 
+    // fetchInitialCompanies: SUBSTITUI os terminais ao invés de merge,
+    // garantindo que dados antigos (de banco apagado) sejam removidos.
+    builder.addMatcher(
+      api.endpoints.fetchInitialCompanies.matchFulfilled,
+      (state, action) => {
+        if (!Array.isArray(action.payload)) return;
+        // Limpa os terminais e reconstrói apenas com os dados frescos do servidor
+        const freshTerminals = {};
+        const freshTruckingCompanies = {};
+        action.payload.forEach((company) => {
+          if (!company || !company.id) return;
+          if (company.type === 'terminal') {
+            freshTerminals[company.id] = company;
+          } else {
+            freshTruckingCompanies[company.id] = company;
+          }
+        });
+        state.terminals = freshTerminals;
+        state.truckingCompanies = freshTruckingCompanies;
+      }
+    );
+
+    // fetchNearbyCompanies e searchCompanies: MERGE (aditivo)
     builder.addMatcher(
       (action) =>
-        api.endpoints.fetchInitialCompanies.matchFulfilled(action) ||
         api.endpoints.fetchNearbyCompanies.matchFulfilled(action) ||
         api.endpoints.searchCompanies.matchFulfilled(action),
       (state, action) => {

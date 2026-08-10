@@ -168,12 +168,20 @@ const ActivityList = forwardRef(function ActivityList({
                     );
                 })}
                 {!isFetching && data.length === 0 && (
-                    <View style={styles.emptyContainer}>
-                        <View style={styles.iconWrapper}>
-                            <Icon name={activeEmptyState.icon} size={40} color={COLORS.primary} />
-                        </View>
-                        <Text style={styles.emptyTitle}>{activeEmptyState.title}</Text>
-                        <Text style={styles.emptySubtitle}>{activeEmptyState.subtitle}</Text>
+                    <View style={activeEmptyState.isDiscreet ? styles.discreetEmptyContainer : styles.emptyContainer}>
+                        {activeEmptyState.icon && (
+                            <View style={activeEmptyState.isDiscreet ? styles.discreetIconWrapper : styles.iconWrapper}>
+                                <Icon 
+                                    name={activeEmptyState.icon} 
+                                    size={activeEmptyState.isDiscreet ? 22 : 40} 
+                                    color={activeEmptyState.isDiscreet ? "#94A3B8" : COLORS.primary} 
+                                />
+                            </View>
+                        )}
+                        <Text style={activeEmptyState.isDiscreet ? styles.discreetEmptyTitle : styles.emptyTitle}>{activeEmptyState.title}</Text>
+                        {activeEmptyState.subtitle ? (
+                            <Text style={activeEmptyState.isDiscreet ? styles.discreetEmptySubtitle : styles.emptySubtitle}>{activeEmptyState.subtitle}</Text>
+                        ) : null}
                     </View>
                 )}
                 {isFetching && <ActivityIndicator style={styles.loader} color="#3b82f6" />}
@@ -202,12 +210,20 @@ const ActivityList = forwardRef(function ActivityList({
             ListHeaderComponent={ListHeaderComponent}
             ListEmptyComponent={
                 !isFetching && (
-                    <View style={styles.emptyContainer}>
-                        <View style={styles.iconWrapper}>
-                            <Icon name={activeEmptyState.icon} size={40} color={COLORS.primary} />
-                        </View>
-                        <Text style={styles.emptyTitle}>{activeEmptyState.title}</Text>
-                        <Text style={styles.emptySubtitle}>{activeEmptyState.subtitle}</Text>
+                    <View style={activeEmptyState.isDiscreet ? styles.discreetEmptyContainer : styles.emptyContainer}>
+                        {activeEmptyState.icon && (
+                            <View style={activeEmptyState.isDiscreet ? styles.discreetIconWrapper : styles.iconWrapper}>
+                                <Icon 
+                                    name={activeEmptyState.icon} 
+                                    size={activeEmptyState.isDiscreet ? 22 : 40} 
+                                    color={activeEmptyState.isDiscreet ? "#94A3B8" : COLORS.primary} 
+                                />
+                            </View>
+                        )}
+                        <Text style={activeEmptyState.isDiscreet ? styles.discreetEmptyTitle : styles.emptyTitle}>{activeEmptyState.title}</Text>
+                        {activeEmptyState.subtitle ? (
+                            <Text style={activeEmptyState.isDiscreet ? styles.discreetEmptySubtitle : styles.emptySubtitle}>{activeEmptyState.subtitle}</Text>
+                        ) : null}
                     </View>
                 )
             }
@@ -261,5 +277,44 @@ const styles = StyleSheet.create({
         color: COLORS.textSubtitle,
         textAlign: "center",
         lineHeight: 20,
+    },
+    discreetEmptyContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 22,
+        marginHorizontal: 20,
+        backgroundColor: "#F8FAFC",
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+        borderStyle: "dashed",
+    },
+    discreetIconWrapper: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#FFFFFF",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 8,
+        elevation: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+    },
+    discreetEmptyTitle: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#64748B",
+        marginBottom: 2,
+        textAlign: "center",
+    },
+    discreetEmptySubtitle: {
+        fontSize: 12,
+        color: "#94A3B8",
+        textAlign: "center",
+        lineHeight: 16,
     },
 });

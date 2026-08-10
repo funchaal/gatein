@@ -42,12 +42,12 @@ export const globalStyles = {
     maxWidth: '90%'
   },
   input: {
-    height: 56,
+    height: 54,
     width: '100%',
     borderRadius: 12,
     paddingHorizontal: 16,
     marginTop: 2,
-    fontSize: 17, 
+    fontSize: 15, 
     color: COLORS.textPrimary,
   },
   outlineButton: {

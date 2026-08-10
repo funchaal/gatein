@@ -6,7 +6,7 @@ Este documento serve como guia definitivo para o processo de build, assinatura e
 
 ### 1. ⚙️ Variáveis de Ambiente & Configuração
 - [ ] **Ambiente `.env`**: Alterar `ENVIRONMENT=development` para `ENVIRONMENT=production` no arquivo `.env`.
-- [ ] **URLs da API**: Confirmar se `API_BASE_URL_PROD` está apontando para o servidor HTTPS de produção (`https://api.gatein.com.br/api/mobile`).
+- [ ] **URL da API**: Confirmar se `API_BASE_URL` está apontando para o servidor de produção (`https://api.gatein.com.br/api/mobile`).
 - [ ] **Reset de Cache do Metro**: Após alterar o `.env`, executar sempre:
   ```bash
   npx react-native start --reset-cache

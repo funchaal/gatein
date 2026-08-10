@@ -77,6 +77,8 @@ export default function EmailCodeScreen() {
         dispatch(dismissEmailPrompt());
         if (isUpdate) {
             navigation.navigate('PersonalData');
+        } else {
+            navigation.navigate('Main');
         }
     };
 

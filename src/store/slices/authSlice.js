@@ -1,6 +1,7 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { secureStorage } from '../../services/secureStorage';
 import { api } from '../../services/api';
+import { clearCompanyLogoCache } from '../../utils/companyLogoCache';
 
 const initialState = {
   token: null,
@@ -38,6 +39,11 @@ const authSlice = createSlice({
 
       secureStorage.clearAll().catch(err =>
         console.error('Error clearing Keychain on logout:', err)
+      );
+
+      // Limpa cache de logos do AsyncStorage
+      clearCompanyLogoCache().catch(err =>
+        console.error('Error clearing logo cache on logout:', err)
       );
     },
 

@@ -14,6 +14,12 @@ const ACTIONS = [
     action: (nav) => nav.navigate('TicketsList'),
   },
   {
+    id: 'submissions',
+    title: 'Envios',
+    icon: 'send',
+    action: (nav) => nav.navigate('SubmissionsList'),
+  },
+  {
     id: 'services',
     title: 'Serviços',
     icon: 'grid',
@@ -31,22 +37,25 @@ const ACTIONS = [
 function MapButton({ item }) {
   const navigation = useNavigation();
   return (
-    <TouchableOpacity style={styles.actionBtn} onPress={() => item.action(navigation)}>
+    <TouchableOpacity style={styles.mapBtn} onPress={() => item.action(navigation)}>
       <ImageBackground
         source={require('../../../../assets/images/mapa.png')}
         style={StyleSheet.absoluteFill}
         imageStyle={{ borderRadius: 16 }}
       >
         <LinearGradient
-          colors={['rgba(26,26,46,0.55)', 'rgba(255,255,255,0.35)']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          colors={['rgba(26,26,46,0.65)', 'rgba(26,26,46,0.35)']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
           style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
         />
       </ImageBackground>
-      <View style={styles.mapIconWrap}>
-        <Icon name={item.icon} size={22} color="#FFFFFF" />
+      <View style={styles.mapLeftContent}>
+        <View style={styles.mapIconWrap}>
+          <Icon name={item.icon} size={20} color="#FFFFFF" />
+        </View>
+        <Text style={styles.mapLabel}>{item.title}</Text>
       </View>
-      <Text style={styles.mapLabel}>{item.title}</Text>
+      <Icon name="chevron-right" size={20} color="rgba(255,255,255,0.8)" />
     </TouchableOpacity>
   );
 }
@@ -54,7 +63,7 @@ function MapButton({ item }) {
 function NormalButton({ item }) {
   const navigation = useNavigation();
   return (
-    <TouchableOpacity style={[styles.actionBtn, styles.normalBtn]} onPress={() => item.action(navigation)}>
+    <TouchableOpacity style={styles.normalBtn} onPress={() => item.action(navigation)}>
       <View style={styles.iconWrap}>
         {item.id === 'tickets' ? (
           <IconMC name={item.icon} size={22} color="#F97316" />
@@ -68,56 +77,66 @@ function NormalButton({ item }) {
 }
 
 export default function ActionButtons() {
+  const topRowActions = ACTIONS.filter((item) => !item.isMap);
+  const mapAction = ACTIONS.find((item) => item.isMap);
+
   return (
-    <View style={styles.grid}>
-      {ACTIONS.map((item) =>
-        item.isMap
-          ? <MapButton key={item.id} item={item} />
-          : <NormalButton key={item.id} item={item} />
-      )}
+    <View style={styles.container}>
+      <View style={styles.topRow}>
+        {topRowActions.map((item) => (
+          <NormalButton key={item.id} item={item} />
+        ))}
+      </View>
+      {mapAction && <MapButton item={mapAction} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    gap: 7,
-    marginTop: 18,
+  container: {
+    marginTop: 24,
     paddingBottom: 8,
+    gap: 10,
     backgroundColor: 'white',
   },
-  actionBtn: {
-    flex: 1,
-    borderRadius: 16,
-    flexDirection: 'column', 
-    justifyContent: 'space-between',
-    alignItems: 'flex-start', 
-    paddingVertical: 14,
-    padding: 15, 
-    // alignItems: 'center',
-    gap: 12,
-    overflow: 'hidden',
-    backgroundColor: '#1a1a2e', // fallback para o mapa
+  topRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
   normalBtn: {
+    flex: 1,
+    height: 86,
+    borderRadius: 16,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: 14,
     backgroundColor: '#f5f5f5',
-    // borderWidth: 1,
-    // borderColor: '#eef0f5',
   },
   iconWrap: {
-    // width: 40, height: 40,
-    borderRadius: 12,
-    // backgroundColor: '#fff3ec',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  mapLeftContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  mapBtn: {
+    height: 56,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    overflow: 'hidden',
+    backgroundColor: '#1a1a2e',
+  },
   mapIconWrap: {
-    // width: 40, height: 40,
-    borderRadius: 12,
-    // backgroundColor: 'rgba(255,255,255,0.25)',
-    // borderWidth: 1,
-    // borderColor: 'rgba(255,255,255,0.4)',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -127,7 +146,7 @@ const styles = StyleSheet.create({
     color: '#313131',
   },
   mapLabel: {
-    fontSize: 12.5,
+    fontSize: 13.5,
     fontWeight: '700',
     color: 'white',
   },

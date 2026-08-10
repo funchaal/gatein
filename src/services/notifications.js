@@ -15,7 +15,7 @@
 
 import messaging from '@react-native-firebase/messaging';
 import { PermissionsAndroid } from 'react-native';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import { API_BASE_URL } from '@env';
 
 // ---------------------------------------------------------------------------
@@ -150,7 +150,7 @@ export async function setupNotifications() {
  * Retorna uma função de cleanup (para usar em useEffect).
  *
  * O Firebase não exibe banners automáticos em foreground no Android/iOS —
- * é responsabilidade do app tratar a mensagem (ex: exibir um Alert ou toast).
+ * é responsabilidade do app tratar a mensagem (ex: exibir uma notificação local via Notifee).
  *
  * @param {function} onMessage - Callback chamado com o remoteMessage recebido
  * @returns {function} Função de unsubscribe
@@ -169,10 +169,9 @@ export function onForegroundMessage(onMessage) {
     // Countdown: delega para handler especial
     if (type === 'COUNTDOWN') {
       handleCountdownNotification(data);
-      return;
     }
 
-    // Para outros tipos, propaga para o callback do chamador
+    // Para outros tipos/mensagens, propaga para o callback do chamador
     if (onMessage) {
       onMessage(remoteMessage);
     }
@@ -215,9 +214,9 @@ export async function getInitialNotification() {
 // ---------------------------------------------------------------------------
 
 /**
- * Exibe um Alert com as informações do agendamento que está chegando.
- * Para um countdown visual completo, integre com uma biblioteca como
- * react-native-push-notification ou lógica de timer local no componente.
+ * Exibe uma notificação local no system tray com informações do agendamento
+ * que está chegando. Usa o Notifee para garantir que a notificação apareça
+ * mesmo com o app em foreground.
  *
  * @param {object} data - Payload da notificação (data.target_timestamp, etc.)
  */
@@ -239,10 +238,10 @@ export function handleCountdownNotification(data) {
     ? `${count} agendamentos`
     : 'seu agendamento';
 
-  Alert.alert(
-    '⏱ Em breve!',
+  const { displayLocalNotification } = require('./displayLocalNotification');
+  displayLocalNotification(
+    'Agendamento Próximo',
     `Faltam ${hours}h ${minutes}min para ${label}. Prepare-se!`,
-    [{ text: 'OK' }],
   );
 }
 

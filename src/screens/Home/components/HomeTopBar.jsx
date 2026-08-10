@@ -13,6 +13,9 @@ export default function HomeTopBar() {
         <Text style={styles.driverName}>Rafael Funchal</Text>
       </View>
       <View style={styles.icons}>
+        <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Requests')}>
+          <Icon name="inbox" size={20} color="#F97316" />
+        </Pressable>
         <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Notifications')}>
           <Icon name="bell" size={20} color="#F97316" />
         </Pressable>

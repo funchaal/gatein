@@ -331,13 +331,13 @@ export default function AnnouncementsCarousel() {
   if (announcements.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Icon name="check-circle" size={18} color="#22C55E" style={styles.emptyIcon} />
+        {/* <Icon name="check-circle" size={18} color="#22C55E" style={styles.emptyIcon} />
         <View style={styles.emptyTextContainer}>
           <Text style={styles.emptyTitle}>Sem avisos</Text>
           <Text style={styles.emptySubtitle}>
             Operações ocorrendo normalmente. Qualquer aviso aparecerá aqui.
           </Text>
-        </View>
+        </View> */}
       </View>
     );
   }
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 0,
     marginTop: 8,
   },
   emptyIcon: {

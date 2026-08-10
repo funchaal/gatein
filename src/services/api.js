@@ -2,19 +2,9 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { secureStorage } from './secureStorage';
 import { getDeviceId } from './deviceInfo';
 import uuid from 'react-native-uuid';
-import { API_BASE_URL_PROD, API_BASE_URL_HOMOLOG, API_BASE_URL_DEV, ENVIRONMENT, CHECKIN_TIMEOUT } from '@env';
+import { API_BASE_URL, ENVIRONMENT, CHECKIN_TIMEOUT } from '@env';
 
-
-// Resolve a URL base de acordo com o ambiente ENVIRONMENT
-// ENVIRONMENT: 'production' | 'homologation' | 'development'
-const getBaseUrl = () => {
-  const env = (ENVIRONMENT || 'development').toLowerCase();
-  if (env === 'production') return API_BASE_URL_PROD || 'https://api.gatein.com.br/api/mobile';
-  if (env === 'homologation') return API_BASE_URL_HOMOLOG || 'https://homolog-api.gatein.com.br/api/mobile';
-  return API_BASE_URL_DEV || 'http://192.168.0.3:8000/api/mobile';
-};
-
-const resolvedBaseUrl = getBaseUrl();
+const resolvedBaseUrl = API_BASE_URL || 'http://192.168.0.3:8000/api/mobile';
 
 export const api = createApi({
   reducerPath: 'api',
@@ -22,23 +12,23 @@ export const api = createApi({
     baseUrl: resolvedBaseUrl,
 
     prepareHeaders: async (headers) => {
-      const isDev = (ENVIRONMENT || 'development').toLowerCase() === 'development';
-      const token = await secureStorage.getToken();
-      if (isDev) console.log({ token });
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
+      const env = (ENVIRONMENT || 'development').toLowerCase();
+      const isDev = env === 'development' || env === 'development-staging';
 
-      // 2. Injeta o Device ID
-      const deviceId = await getDeviceId();
-      if (isDev) console.log({ deviceId });
-      if (deviceId) {
-        headers.set('X-Device-ID', deviceId); // O nome tem que bater com o alias do FastAPI
-      }
+      // Lê token e deviceId em paralelo — antes eram awaits sequenciais,
+      // agora pagamos apenas o tempo do mais lento dos dois.
+      const [token, deviceId] = await Promise.all([
+        secureStorage.getToken(),
+        getDeviceId(),
+      ]);
+
+      if (isDev) console.log({ token, deviceId });
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      if (deviceId) headers.set('X-Device-ID', deviceId);
       return headers;
     },
   }),
-  tagTypes: ['Activity', 'Chat', 'Document', 'Register', 'Auth', 'NotificationHistory'],
+  tagTypes: ['Activity', 'Chat', 'Document', 'Register', 'Auth', 'NotificationHistory', 'Submission'],
   endpoints: (builder) => ({
     // --- AUTH ---
     login: builder.mutation({
@@ -65,15 +55,16 @@ export const api = createApi({
 
     restoreSession: builder.mutation({
       queryFn: async (_, _api, _extraOptions, fetchWithBQ) => {
-        const token = await secureStorage.getToken();
-        const savedTaxId = await secureStorage.getTaxId();
+        // Uma única leitura de Keychain para obter token e taxId de uma vez,
+        // em vez de duas chamadas sequenciais (getToken + getTaxId).
+        const { token, taxId: savedTaxId } = await secureStorage.getCredentials();
 
-        if (!token) {
+        if (!token || token === 'EMPTY_TOKEN') {
           return { error: { status: 401, data: { error: { code: 'NO_TOKEN_FOUND', message: 'Token não encontrado' } } } };
         }
 
         const response = await fetchWithBQ({
-          url: '/auth/session/restore', // ou '/auth/session/restore' dependendo da sua URL base
+          url: '/auth/session/restore',
           method: 'POST'
         });
 
@@ -358,6 +349,51 @@ export const api = createApi({
       }),
       invalidatesTags: ['Activity'],
     }),
+
+    // --- SUBMISSIONS ---
+    fetchMySubmissions: builder.query({
+      query: ({ limit = 50, offset = 0 } = {}) => ({
+        url: '/submissions',
+        method: 'GET',
+        params: { limit, offset }
+      }),
+      providesTags: ['Submission'],
+    }),
+    fetchCompanySubmissionTypes: builder.query({
+      query: (companyId) => ({
+        url: `/submissions/types/${companyId}`,
+        method: 'GET',
+      }),
+    }),
+    createSubmission: builder.mutation({
+      query: (body) => ({
+        url: '/submissions',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Submission'],
+    }),
+    updateSubmission: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `/submissions/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Submission'],
+    }),
+    cancelSubmission: builder.mutation({
+      query: (id) => ({
+        url: `/submissions/${id}/cancel`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Submission'],
+    }),
+    getPresignedSubmissionAttachmentUrl: builder.mutation({
+      query: (contentType) => ({
+        url: `/submissions/presign-attachment?content_type=${encodeURIComponent(contentType)}`,
+        method: 'GET',
+      }),
+    }),
   })
 });
 
@@ -395,4 +431,13 @@ export const {
   useRemoveFCMTokenMutation,
   // Check-in
   useCancelCheckinMutation,
+  // Submissions
+  useFetchMySubmissionsQuery,
+  useLazyFetchMySubmissionsQuery,
+  useFetchCompanySubmissionTypesQuery,
+  useLazyFetchCompanySubmissionTypesQuery,
+  useCreateSubmissionMutation,
+  useUpdateSubmissionMutation,
+  useCancelSubmissionMutation,
+  useGetPresignedSubmissionAttachmentUrlMutation,
 } = api;

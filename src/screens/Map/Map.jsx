@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { View, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
@@ -56,38 +56,40 @@ export default function MapScreen() {
     const [isRouteLoading, setIsRouteLoading] = useState(false);
 
     // Formata a lista de terminais resolvendo coordenadas físicas e da geocerca para uso no mapa
-    const terminalsList = Object.values(terminals || {}).map((t) => {
-        // Coordenadas físicas da empresa/endereço
-        const addressLat = t.address?.lat ?? t.latitude;
-        const addressLng = t.address?.lng ?? t.longitude;
+    const terminalsList = useMemo(() => {
+        return Object.values(terminals || {}).map((t) => {
+            // Coordenadas físicas da empresa/endereço
+            const addressLat = t.address?.lat ?? t.latitude;
+            const addressLng = t.address?.lng ?? t.longitude;
 
-        // Coordenadas do centro da geocerca
-        const geofenceLat = t.geofence?.center?.lat ?? t.latitude;
-        const geofenceLng = t.geofence?.center?.lng ?? t.longitude;
+            // Coordenadas do centro da geocerca
+            const geofenceLat = t.geofence?.center?.lat ?? t.latitude;
+            const geofenceLng = t.geofence?.center?.lng ?? t.longitude;
 
-        // Raio da geocerca
-        let radius = t.geofenceRadius ?? t.geofence_radius;
-        if (radius === undefined || radius === null) {
-            radius = t.geofence?.radius ?? 0;
-        }
+            // Raio da geocerca
+            let radius = t.geofenceRadius ?? t.geofence_radius;
+            if (radius === undefined || radius === null) {
+                radius = t.geofence?.radius ?? 0;
+            }
 
-        return {
-            id: t.id,
-            name: t.name,
-            addressLat: addressLat ? Number(addressLat) : null,
-            addressLng: addressLng ? Number(addressLng) : null,
-            geofenceLat: geofenceLat ? Number(geofenceLat) : null,
-            geofenceLng: geofenceLng ? Number(geofenceLng) : null,
-            geofenceRadius: Number(radius),
-            logo_url: t.logo_url || null,
-            addressStreet: t.address?.street || null,
-            addressNumber: t.address?.number || null,
-            addressCity: t.address?.city || null,
-            addressState: t.address?.state || null,
-            addressZip: t.address?.zip || null,
-            formattedAddress: typeof t.address === 'string' ? t.address : null
-        };
-    }).filter((t) => t.addressLat !== null && t.addressLng !== null);
+            return {
+                id: t.id,
+                name: t.name,
+                addressLat: addressLat ? Number(addressLat) : null,
+                addressLng: addressLng ? Number(addressLng) : null,
+                geofenceLat: geofenceLat ? Number(geofenceLat) : null,
+                geofenceLng: geofenceLng ? Number(geofenceLng) : null,
+                geofenceRadius: Number(radius),
+                logo_url: t.logo_url || null,
+                addressStreet: t.address?.street || null,
+                addressNumber: t.address?.number || null,
+                addressCity: t.address?.city || null,
+                addressState: t.address?.state || null,
+                addressZip: t.address?.zip || null,
+                formattedAddress: typeof t.address === 'string' ? t.address : null
+            };
+        }).filter((t) => t.addressLat !== null && t.addressLng !== null);
+    }, [terminals]);
 
     // --- ATUALIZAÇÃO DO MAPA ---
     const updateMap = useCallback(() => {
@@ -201,6 +203,9 @@ export default function MapScreen() {
         setIsRouteLoading(false);
     };
 
+    // Memoiza o HTML do Leaflet — o conteúdo nunca muda, evita regenerar a cada render
+    const leafletHTML = useMemo(() => generateLeafletHTML(LEAFLET_CSS, LEAFLET_JS_BASE64), []);
+
     // --- RENDERIZAÇÃO ---
     // Se ocorrer erro e não temos coordenadas de localização
     if (errorMsg && !coords) {
@@ -218,8 +223,6 @@ export default function MapScreen() {
             </ScreenWrapper>
         );
     }
-
-    const leafletHTML = generateLeafletHTML(LEAFLET_CSS, LEAFLET_JS_BASE64);
 
     return (
         <ScreenWrapper noPadding={true}>

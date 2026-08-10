@@ -1,16 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { secureStorage } from './secureStorage';
 import { getDeviceId } from './deviceInfo';
-import { API_BASE_URL_PROD, API_BASE_URL_HOMOLOG, API_BASE_URL_DEV, ENVIRONMENT } from '@env';
+import { API_BASE_URL } from '@env';
 
-const getBaseUrl = () => {
-  const env = (ENVIRONMENT || 'development').toLowerCase();
-  if (env === 'production') return API_BASE_URL_PROD || 'https://api.gatein.com.br/api/mobile';
-  if (env === 'homologation') return API_BASE_URL_HOMOLOG || 'https://homolog-api.gatein.com.br/api/mobile';
-  return API_BASE_URL_DEV || 'http://192.168.0.3:8000/api/mobile';
-};
-
-const resolvedBaseUrl = getBaseUrl();
+const resolvedBaseUrl = API_BASE_URL || 'http://192.168.0.3:8000/api/mobile';
 
 /**
  * servicesApi — RTK Query slice dedicated to company services and service auth.

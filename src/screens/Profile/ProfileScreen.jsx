@@ -7,7 +7,8 @@ import ScreenHeader from '../../components/ui/ScreenHeader';
 import { COLORS } from '../../constants/colors';
 import { useSelector } from 'react-redux';
 import { capitalize } from '../../utils/tools';
-import { User, Shield, ChevronRight } from 'lucide-react-native';
+import { User, Shield, ChevronRight, MapPin } from 'lucide-react-native';
+import { isStagingLogicEnabled } from '../../utils/env';
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
@@ -57,6 +58,16 @@ export default function ProfileScreen() {
                     rightElement={<ChevronRight size={18} color="#94A3B8" />}
                     leftElement={<User size={22} color="#666666" />}
                 />
+
+                {isStagingLogicEnabled() && (
+                    <ListItem 
+                        title="Simulador de Localização" 
+                        subtitles={["Ferramenta de testes (Homologação)"]}
+                        onPress={() => navigation.navigate('LocationSimulator')}
+                        rightElement={<ChevronRight size={18} color="#94A3B8" />}
+                        leftElement={<MapPin size={22} color="#666666" />}
+                    />
+                )}
 
                 <ListItem 
                     title="Segurança" 

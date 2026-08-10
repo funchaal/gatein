@@ -87,13 +87,16 @@ function AppContent() {
       if (type === 'CHECKED-IN') {
         setCheckinSuccessModalVisible(true);
       } else {
-        // Exibe notificação visual apenas em foreground
-        // (em background/quit o sistema operacional já exibiu o banner)
-        if (notification?.body) {
-          const { Alert } = require('react-native');
-          Alert.alert(
-            notification.title || 'GateIn',
-            notification.body,
+        // Exibe notificação local no system tray (em foreground o Firebase
+        // não exibe banners automáticos, então usamos o Notifee)
+        const title = notification?.title || data?.title || 'GateIn';
+        const body = notification?.body || data?.body;
+        if (body) {
+          const { displayLocalNotification } = require('./src/services/displayLocalNotification');
+          displayLocalNotification(
+            title,
+            body,
+            data || {},
           );
         }
       }
