@@ -28,7 +28,6 @@ export default function HomeScreen() {
     );
 
     const homeEmptyState = {
-        icon: "calendar-clock-outline",
         title: "Sem operações futuras por enquanto",
         subtitle: "Seus próximos agendamentos e viagens aparecerão aqui.",
         isDiscreet: true,

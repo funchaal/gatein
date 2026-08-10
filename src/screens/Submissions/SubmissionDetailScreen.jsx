@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   },
   dateTextEdited: {
     fontSize: 12,
-    color: '#2563EB',
+    color: '#D97706',
     fontStyle: 'italic',
   },
   sectionTitle: {

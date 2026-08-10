@@ -21,7 +21,7 @@ export default function ScreenHeader({ title, showBackButton, rightElement, noBo
                     </TouchableOpacity>
                 )}
             </View>
-            <Text style={styles.headerTitleFixed} numberOfLines={1}>
+            <Text style={styles.headerTitleFixed} numberOfLines={1} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                 {title}
             </Text>
             <View style={styles.headerRightContainer}>

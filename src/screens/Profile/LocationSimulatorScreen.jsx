@@ -1,10 +1,10 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, Switch, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { StyleSheet, View, Text, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useDispatch, useSelector } from 'react-redux';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import ScreenHeader from '../../components/ui/ScreenHeader';
-import MainAsyncButton from '../../components/ui/MainAsyncButton';
+import Input from '../../components/ui/Input';
 import { COLORS } from '../../constants/colors';
 import { generateLeafletHTML } from '../../services/leafletTemplate';
 import { LEAFLET_CSS, LEAFLET_JS_BASE64 } from '../../constants/LeafletCore';
@@ -15,11 +15,12 @@ export default function LocationSimulatorScreen({ navigation }) {
     const dispatch = useDispatch();
     const user = useSelector(state => state.auth.user) || {};
     const companyLocation = user.company_location;
-    const { isSimulating, simulatedCoords, coords: currentCoords } = useSelector(state => state.location);
+    const { isSimulating, simulatedCoords, coords: currentCoords, realCoords } = useSelector(state => state.location);
     
-    // Initial lat/lng based on simulated, current, or company location, or a default
-    const initialLat = simulatedCoords?.latitude || currentCoords?.latitude || companyLocation?.lat || -23.9241566;
-    const initialLng = simulatedCoords?.longitude || currentCoords?.longitude || companyLocation?.lng || -46.3493093;
+    // Position priority: simulated if simulating, else realCoords, else currentCoords, else company or default
+    const activeCoords = isSimulating ? (simulatedCoords || currentCoords) : (realCoords || (!currentCoords?.isSimulated ? currentCoords : null));
+    const initialLat = activeCoords?.latitude || companyLocation?.lat || -23.9241566;
+    const initialLng = activeCoords?.longitude || companyLocation?.lng || -46.3493093;
 
     const [lat, setLat] = useState(initialLat.toString());
     const [lng, setLng] = useState(initialLng.toString());
@@ -32,27 +33,88 @@ export default function LocationSimulatorScreen({ navigation }) {
     const toggleSwitch = (val) => {
         setSimulatingLocal(val);
         dispatch(setSimulating(val));
-    };
 
-    const handleUpdate = () => {
-        const parsedLat = parseFloat(lat);
-        const parsedLng = parseFloat(lng);
-        if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-            dispatch(updateSimulatedLocation({
-                latitude: parsedLat,
-                longitude: parsedLng,
-                accuracy: 5
-            }));
-            Keyboard.dismiss();
-            
-            // Centraliza o mapa
+        if (val) {
+            // Turning simulation ON
+            const parsedLat = parseFloat(lat);
+            const parsedLng = parseFloat(lng);
+            if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+                dispatch(updateSimulatedLocation({
+                    latitude: parsedLat,
+                    longitude: parsedLng,
+                    accuracy: 5
+                }));
+                if (isMapReady && webViewRef.current) {
+                    webViewRef.current.injectJavaScript(getCenterMapJsCode(parsedLat, parsedLng));
+                    webViewRef.current.injectJavaScript(`
+                        if (window.updateMapState) {
+                            window.updateMapState(${parsedLat}, ${parsedLng}, 0, false, 5);
+                        }
+                    `);
+                }
+            }
+        } else {
+            // Turning simulation OFF -> revert immediately to real position
+            const targetRealCoords = realCoords || (!currentCoords?.isSimulated ? currentCoords : null);
+            const targetLat = targetRealCoords?.latitude || companyLocation?.lat || -23.9241566;
+            const targetLng = targetRealCoords?.longitude || companyLocation?.lng || -46.3493093;
+
+            setLat(targetLat.toString());
+            setLng(targetLng.toString());
+
             if (isMapReady && webViewRef.current) {
-                webViewRef.current.injectJavaScript(getCenterMapJsCode(parsedLat, parsedLng));
+                webViewRef.current.injectJavaScript(getCenterMapJsCode(targetLat, targetLng));
                 webViewRef.current.injectJavaScript(`
                     if (window.updateMapState) {
-                        window.updateMapState(${parsedLat}, ${parsedLng}, 0, false, 5);
+                        window.updateMapState(${targetLat}, ${targetLng}, 0, false, 5);
                     }
                 `);
+            }
+        }
+    };
+
+    const handleLatChange = (newLatStr) => {
+        setLat(newLatStr);
+        if (simulating) {
+            const parsedLat = parseFloat(newLatStr);
+            const parsedLng = parseFloat(lng);
+            if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+                dispatch(updateSimulatedLocation({
+                    latitude: parsedLat,
+                    longitude: parsedLng,
+                    accuracy: 5
+                }));
+                if (isMapReady && webViewRef.current) {
+                    webViewRef.current.injectJavaScript(getCenterMapJsCode(parsedLat, parsedLng));
+                    webViewRef.current.injectJavaScript(`
+                        if (window.updateMapState) {
+                            window.updateMapState(${parsedLat}, ${parsedLng}, 0, false, 5);
+                        }
+                    `);
+                }
+            }
+        }
+    };
+
+    const handleLngChange = (newLngStr) => {
+        setLng(newLngStr);
+        if (simulating) {
+            const parsedLat = parseFloat(lat);
+            const parsedLng = parseFloat(newLngStr);
+            if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+                dispatch(updateSimulatedLocation({
+                    latitude: parsedLat,
+                    longitude: parsedLng,
+                    accuracy: 5
+                }));
+                if (isMapReady && webViewRef.current) {
+                    webViewRef.current.injectJavaScript(getCenterMapJsCode(parsedLat, parsedLng));
+                    webViewRef.current.injectJavaScript(`
+                        if (window.updateMapState) {
+                            window.updateMapState(${parsedLat}, ${parsedLng}, 0, false, 5);
+                        }
+                    `);
+                }
             }
         }
     };
@@ -110,8 +172,27 @@ export default function LocationSimulatorScreen({ navigation }) {
         }
         
         if (parsedMessage?.type === 'MAP_CLICKED') {
-            setLat(parsedMessage.lat.toFixed(7).toString());
-            setLng(parsedMessage.lng.toFixed(7).toString());
+            // Se a simulação estiver desativada, ignora qualquer clique no mapa
+            if (!simulating) return;
+
+            const clickedLat = parsedMessage.lat;
+            const clickedLng = parsedMessage.lng;
+            setLat(clickedLat.toFixed(7).toString());
+            setLng(clickedLng.toFixed(7).toString());
+
+            dispatch(updateSimulatedLocation({
+                latitude: clickedLat,
+                longitude: clickedLng,
+                accuracy: 5
+            }));
+            if (webViewRef.current) {
+                webViewRef.current.injectJavaScript(getCenterMapJsCode(clickedLat, clickedLng));
+                webViewRef.current.injectJavaScript(`
+                    if (window.updateMapState) {
+                        window.updateMapState(${clickedLat}, ${clickedLng}, 0, false, 5);
+                    }
+                `);
+            }
         }
     };
 
@@ -121,46 +202,45 @@ export default function LocationSimulatorScreen({ navigation }) {
             <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <View style={styles.form}>
                     <View style={styles.switchRow}>
-                        <View>
+                        <View style={{ flex: 1, paddingRight: 12 }}>
                             <Text style={styles.switchTitle}>Ativar Simulação</Text>
                             <Text style={styles.switchSubtitle}>Sobrescreve o GPS do aparelho</Text>
                         </View>
                         <Switch
                             value={simulating}
                             onValueChange={toggleSwitch}
-                            trackColor={{ false: '#CBD5E1', true: COLORS.primary }}
+                            trackColor={{ false: '#CBD5E1', true: '#FDBA74' }}
+                            thumbColor={simulating ? COLORS.primary : '#FFFFFF'}
+                            ios_backgroundColor="#CBD5E1"
                         />
                     </View>
+
+                    {simulating && (
+                        <View style={styles.hintBanner}>
+                            <Text style={styles.hintText}>Clique no mapa para atualizar a sua localização</Text>
+                        </View>
+                    )}
                     
                     <View style={styles.row}>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Latitude</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={lat}
-                                onChangeText={setLat}
-                                keyboardType="numeric"
-                                placeholder="-23.924"
-                            />
-                        </View>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Longitude</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={lng}
-                                onChangeText={setLng}
-                                keyboardType="numeric"
-                                placeholder="-46.349"
-                            />
-                        </View>
+                        <Input
+                            label="Latitude"
+                            value={lat}
+                            onChangeText={handleLatChange}
+                            keyboardType="numeric"
+                            placeholder="-23.924"
+                            containerStyle={styles.flexInput}
+                            editable={simulating}
+                        />
+                        <Input
+                            label="Longitude"
+                            value={lng}
+                            onChangeText={handleLngChange}
+                            keyboardType="numeric"
+                            placeholder="-46.349"
+                            containerStyle={styles.flexInput}
+                            editable={simulating}
+                        />
                     </View>
-                    
-                    <MainAsyncButton 
-                        title="Atualizar Localização" 
-                        onPress={handleUpdate} 
-                        style={styles.button}
-                        disabled={!simulating}
-                    />
                 </View>
 
                 <View style={styles.mapContainer}>
@@ -194,7 +274,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 20,
+        marginBottom: 16,
     },
     switchTitle: {
         fontSize: 16,
@@ -206,32 +286,26 @@ const styles = StyleSheet.create({
         color: '#64748B',
         marginTop: 2,
     },
+    hintBanner: {
+        backgroundColor: 'rgba(249, 115, 22, 0.08)',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        marginBottom: 16,
+        borderLeftWidth: 3,
+        borderLeftColor: COLORS.primary,
+    },
+    hintText: {
+        fontSize: 13,
+        color: COLORS.primary,
+        fontWeight: '500',
+    },
     row: {
         flexDirection: 'row',
         gap: 12,
-        marginBottom: 16,
     },
-    inputGroup: {
+    flexInput: {
         flex: 1,
-    },
-    label: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#475569',
-        marginBottom: 6,
-    },
-    input: {
-        backgroundColor: '#F1F5F9',
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        color: '#0F172A',
-        fontSize: 15,
-    },
-    button: {
-        marginTop: 4,
     },
     mapContainer: {
         flex: 1,

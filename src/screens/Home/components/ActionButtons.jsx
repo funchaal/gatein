@@ -94,7 +94,7 @@ export default function ActionButtons() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 24,
+    marginTop: 16,
     paddingBottom: 8,
     gap: 10,
     backgroundColor: 'white',
