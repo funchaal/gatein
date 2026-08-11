@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
     rowContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
+        gap: 8,
         marginBottom: 2, // margin-bottom: 2px
         paddingVertical: 2, // padding-top: 2px; padding-bottom: 2px;
     }, 
@@ -53,11 +54,16 @@ const styles = StyleSheet.create({
         color: THEME.slate400,
         fontWeight: '500',
         textTransform: 'capitalize',
+        flex: 1,
+        maxWidth: '50%',
     }, 
     rowValue: {
         fontSize: 14,
         color: THEME.slate900,
-        fontWeight: '600'
+        fontWeight: '600',
+        flex: 1,
+        maxWidth: '50%',
+        textAlign: 'right',
     },
 
     // Estilos para o componente Header

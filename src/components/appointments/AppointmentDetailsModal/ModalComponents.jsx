@@ -124,8 +124,9 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         marginVertical: 0,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'space-between',
+        gap: 8,
     },
     fieldLabel: { 
         fontSize: 14,
@@ -133,11 +134,16 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         marginBottom: 2,
         textTransform: 'capitalize',
+        flex: 1,
+        maxWidth: '50%',
     },
     fieldValue: { 
         fontSize: 14,
         color: '#334155',
         fontWeight: '600',
+        flex: 1,
+        maxWidth: '50%',
+        textAlign: 'right',
     },
 
     // Estilos para o componente AlertComponent

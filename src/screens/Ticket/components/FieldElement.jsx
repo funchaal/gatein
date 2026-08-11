@@ -19,19 +19,25 @@ export const styles = StyleSheet.create({
     fieldRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         paddingVertical: 5,
         marginVertical: 0,
+        gap: 8,
     },
     fieldLabel: {
         fontSize: 14,
         color: THEME.slate400,
         fontWeight: '500',
         marginBottom: 2,
+        flex: 1,
+        maxWidth: '50%',
     },
     fieldValue: {
         fontSize: 14,
         fontWeight: '600',
         color: '#334155',
+        flex: 1,
+        maxWidth: '50%',
+        textAlign: 'right',
     },
 });
