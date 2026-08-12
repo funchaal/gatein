@@ -49,59 +49,144 @@ curl -X PUT "http://localhost:5000/api/web/config/appointment/layouts" \
   -d '{
     "ref": "carga_geral",
     "title": "Carga Geral",
-    "layout": {
-      "card_layout": {
-        "header": {
-          "field": "summary",
-          "label": "Operação"
-        },
-        "sub_header": {
-          "label": "Veículo",
-          "field": "license_plate"
-        },
-        "body_rows": [
-          { "label": "Transportadora", "field": "transportadora" },
-          { "label": "Produto", "field": "produto" }
-        ],
-        "status_tags": [
-          { "color": "blue", "value": "SCHEDULED" },
-          { "color": "green", "value": "IN_PROGRESS" }
+    "card_layout": {
+      "header": {
+        "field": "summary",
+        "label": "Operação"
+      },
+      "sub_header": {
+        "label": "Veículo",
+        "field": "license_plate"
+      },
+      "body_rows": [
+        { "label": "Transportadora", "field": "transportadora" },
+        { "label": "Produto", "field": "produto" },
+        { "label": "Nota Fiscal", "field": "nota_fiscal" },
+        { "label": "Berço / Doca", "field": "berco" }
+      ]
+    },
+    "modal_layout": [
+      {
+        "element": "section",
+        "title": "Detalhes da Operação",
+        "fields": [
+          { "label": "Nota Fiscal", "field": "nota_fiscal" },
+          { "label": "CT-e", "field": "num_cte" },
+          { "label": "Produto", "field": "produto" },
+          { "label": "Tipo de Operação", "field": "tipo_operacao" },
+          { "label": "Peso (ton)", "field": "peso_ton" },
+          { "label": "Navio", "field": "navio" },
+          { "label": "Berço / Destino", "field": "berco" },
+          { "label": "Lacre de Segurança", "field": "lacre" }
         ]
       },
-      "modal_layout": [
-        {
-          "element": "section",
-          "title": "Detalhes da Operação",
-          "fields": [
-            { "label": "Nota Fiscal", "field": "nota_fiscal" },
-            { "label": "CT-e", "field": "num_cte" },
-            { "label": "Produto", "field": "produto" },
-            { "label": "Peso (ton)", "field": "peso_ton" }
-          ]
-        },
-        {
-          "element": "section",
-          "title": "Veículo e Motorista",
-          "fields": [
-            { "label": "Motorista", "field": "nome_motorista" },
-            { "label": "CNH", "field": "cnh_motorista" },
-            { "label": "Transportadora", "field": "transportadora" }
-          ]
-        },
-        {
-          "element": "field",
-          "label": "Observações",
-          "field": "observacoes"
-        },
-        {
-          "element": "qrcode",
-          "title": "Código do Agendamento",
-          "field": "ref",
-          "caption": "Apresente na portaria"
-        }
-      ]
-    }
+      {
+        "element": "section",
+        "title": "Veículo e Motorista",
+        "fields": [
+          { "label": "Motorista", "field": "nome_motorista" },
+          { "label": "CPF Motorista", "field": "cpf_motorista" },
+          { "label": "CNH Motorista", "field": "cnh_motorista" },
+          { "label": "Telefone / Celular", "field": "celular_motorista" },
+          { "label": "Transportadora", "field": "transportadora" },
+          { "label": "Placa Cavalo", "field": "license_plate" },
+          { "label": "Placa Carreta", "field": "placa_carreta" }
+        ]
+      },
+      {
+        "element": "section",
+        "title": "Controle e Logística",
+        "fields": [
+          { "label": "Prioridade da Carga", "field": "nivel_prioridade" },
+          { "label": "Tolerância Janela", "field": "janela_tolerancia" }
+        ]
+      },
+      {
+        "element": "field",
+        "label": "Observações do Terminal",
+        "field": "observacoes"
+      },
+      {
+        "element": "qrcode",
+        "title": "Código do Agendamento",
+        "field": "ref",
+        "caption": "Apresente o QR Code na guarita de acesso"
+      }
+    ]
   }'
+```
+
+**JSON para copiar e colar diretamente no Editor do Webapp (aba JSON):**
+
+```json
+{
+  "ref": "carga_geral",
+  "title": "Carga Geral",
+  "card_layout": {
+    "header": {
+      "field": "summary",
+      "label": "Operação"
+    },
+    "sub_header": {
+      "label": "Veículo",
+      "field": "license_plate"
+    },
+    "body_rows": [
+      { "label": "Transportadora", "field": "transportadora" },
+      { "label": "Produto", "field": "produto" },
+      { "label": "Nota Fiscal", "field": "nota_fiscal" },
+      { "label": "Berço / Doca", "field": "berco" }
+    ]
+  },
+  "modal_layout": [
+    {
+      "element": "section",
+      "title": "Detalhes da Operação",
+      "fields": [
+        { "label": "Nota Fiscal", "field": "nota_fiscal" },
+        { "label": "CT-e", "field": "num_cte" },
+        { "label": "Produto", "field": "produto" },
+        { "label": "Tipo de Operação", "field": "tipo_operacao" },
+        { "label": "Peso (ton)", "field": "peso_ton" },
+        { "label": "Navio", "field": "navio" },
+        { "label": "Berço / Destino", "field": "berco" },
+        { "label": "Lacre de Segurança", "field": "lacre" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Veículo e Motorista",
+      "fields": [
+        { "label": "Motorista", "field": "nome_motorista" },
+        { "label": "CPF Motorista", "field": "cpf_motorista" },
+        { "label": "CNH Motorista", "field": "cnh_motorista" },
+        { "label": "Telefone / Celular", "field": "celular_motorista" },
+        { "label": "Transportadora", "field": "transportadora" },
+        { "label": "Placa Cavalo", "field": "license_plate" },
+        { "label": "Placa Carreta", "field": "placa_carreta" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Controle e Logística",
+      "fields": [
+        { "label": "Prioridade da Carga", "field": "nivel_prioridade" },
+        { "label": "Tolerância Janela", "field": "janela_tolerancia" }
+      ]
+    },
+    {
+      "element": "field",
+      "label": "Observações do Terminal",
+      "field": "observacoes"
+    },
+    {
+      "element": "qrcode",
+      "title": "Código do Agendamento",
+      "field": "ref",
+      "caption": "Apresente o QR Code na guarita de acesso"
+    }
+  ]
+}
 ```
 
 #### 2.3 — Criar Ticket Layout (Terminal)
@@ -113,70 +198,156 @@ curl -X PUT "http://localhost:5000/api/web/config/ticket/layouts" \
   -d '{
     "ref": "ticket_padrao",
     "title": "Ticket de Entrada",
-    "layout": {
-      "elements": [
-        {
-          "element": "tag_container",
-          "label": "Status da Liberação",
-          "tags": [
-            { "label": "Liberado", "color": "green", "icon": "check-circle-outline" },
-            { "label": "Balança Obrigatória", "color": "orange", "icon": "scale" }
-          ]
-        },
-        {
-          "element": "highlight_grid",
-          "label": "Dados de Gate",
-          "items": [
-            { "label": "Gate", "useField": true, "field": "gate_entrada", "color": "green", "caption": "Entrada autorizada" },
-            { "label": "Doca", "useField": true, "field": "doca", "color": "blue", "caption": "Destino interno" }
-          ]
-        },
-        {
-          "element": "section",
-          "title": "Dados da Operação"
-        },
-        { "element": "field", "label": "Nº Ticket", "field": "numero_ticket" },
-        { "element": "field", "label": "Motorista", "field": "nome_motorista" },
-        { "element": "field", "label": "Placa", "field": "placa" },
-        { "element": "field", "label": "Balança", "field": "balanca" },
-        { "element": "field", "label": "Peso Entrada (kg)", "field": "balanca_entrada" },
-        {
-          "element": "attention",
-          "title": "Atenção",
-          "useField": true,
-          "field": "observacoes_gate",
-          "color": "orange",
-          "icon": "alert-circle-outline"
-        },
-        {
-          "element": "instruction",
-          "title": "INSTRUÇÕES DE ACESSO",
-          "steps": [
-            "Dirija-se ao gate indicado acima.",
-            "Apresente este ticket ao operador ou no leitor óptico.",
-            "Aguarde a liberação da cancela."
-          ]
-        }
-      ],
-      "appt_card_layout": {
-        "header": {
-          "field": "summary",
-          "preview_value": "Descarga de Soja — MV Atlantic Star"
-        },
-        "body_rows": [
-          { "field": "gate_assignment", "label": "Gate" }
-        ],
-        "sub_header": {
-          "field": "license_plate",
-          "label": "Veículo",
-          "preview_value": "ABC1D23"
-        },
-        "status_tags": [
-          { "color": "blue", "value": "SCHEDULED" }
+    "layout": [
+      {
+        "element": "tag_container",
+        "label": "Status da Liberação",
+        "tags": [
+          { "label": "Liberado", "color": "green", "icon": "check-circle-outline" },
+          { "label": "Balança Obrigatória", "color": "orange", "icon": "scale" },
+          { "label": "Vistoria Concluída", "color": "blue", "icon": "shield-check-outline" }
+        ]
+      },
+      {
+        "element": "highlight_grid",
+        "label": "Dados de Acesso Rápido",
+        "items": [
+          { "label": "Gate", "useField": true, "field": "gate_entrada", "color": "green", "caption": "Entrada autorizada" },
+          { "label": "Doca", "useField": true, "field": "doca", "color": "blue", "caption": "Destino interno" },
+          { "label": "Balança", "useField": true, "field": "balanca", "color": "orange", "caption": "Pesagem 01" },
+          { "label": "Status", "useField": true, "field": "autorizacao", "color": "green", "caption": "Acesso Liberado" }
+        ]
+      },
+      {
+        "element": "section",
+        "title": "Identificação do Ticket"
+      },
+      { "element": "field", "label": "Nº Ticket", "field": "numero_ticket" },
+      { "element": "field", "label": "Data / Hora Entrada", "field": "hora_entrada" },
+      { "element": "field", "label": "Validade do Ticket", "field": "validade_ticket" },
+      { "element": "field", "label": "Operador Responsável", "field": "operador" },
+      {
+        "element": "section",
+        "title": "Dados da Operação e Carga"
+      },
+      { "element": "field", "label": "Produto", "field": "produto" },
+      { "element": "field", "label": "Nota Fiscal", "field": "nota_fiscal" },
+      { "element": "field", "label": "CT-e", "field": "num_cte" },
+      { "element": "field", "label": "Destino Interno", "field": "destino_interno" },
+      { "element": "field", "label": "Peso Programado", "field": "peso_solicitado" },
+      { "element": "field", "label": "Peso Entrada (kg)", "field": "balanca_entrada" },
+      { "element": "field", "label": "Peso Tara (kg)", "field": "peso_tara" },
+      { "element": "field", "label": "Lacre de Segurança", "field": "lacre_seguranca" },
+      {
+        "element": "section",
+        "title": "Veículo e Transportador"
+      },
+      { "element": "field", "label": "Motorista", "field": "nome_motorista" },
+      { "element": "field", "label": "CPF Motorista", "field": "cpf_motorista" },
+      { "element": "field", "label": "CNH Motorista", "field": "cnh_motorista" },
+      { "element": "field", "label": "Placa Cavalo", "field": "placa" },
+      { "element": "field", "label": "Placa Carreta", "field": "placa_carreta" },
+      { "element": "field", "label": "Transportadora", "field": "transportadora" },
+      {
+        "element": "attention",
+        "title": "Instruções da Portaria e Pátio",
+        "useField": true,
+        "field": "observacoes_gate",
+        "color": "orange",
+        "icon": "alert-circle-outline"
+      },
+      {
+        "element": "instruction",
+        "title": "INSTRUÇÕES DE ACESSO E NORMAS INTERNAS",
+        "steps": [
+          "Dirija-se ao gate e balança indicados acima no painel.",
+          "Apresente este ticket digital ao operador ou no leitor ótico da balança.",
+          "Uso obrigatório de EPI (capacete, colete refletivo e calçado fechado).",
+          "Respeite o limite máximo de velocidade de 20 km/h dentro do terminal.",
+          "Aguarde a liberação da cancela e o direcionamento para a doca de descarga."
         ]
       }
-    }
+    ]
   }'
+```
+
+**JSON para copiar e colar diretamente no Editor do Webapp (aba JSON):**
+
+```json
+{
+  "ref": "ticket_padrao",
+  "title": "Ticket de Entrada",
+  "layout": [
+    {
+      "element": "tag_container",
+      "label": "Status da Liberação",
+      "tags": [
+        { "label": "Liberado", "color": "green", "icon": "check-circle-outline" },
+        { "label": "Balança Obrigatória", "color": "orange", "icon": "scale" },
+        { "label": "Vistoria Concluída", "color": "blue", "icon": "shield-check-outline" }
+      ]
+    },
+    {
+      "element": "highlight_grid",
+      "label": "Dados de Acesso Rápido",
+      "items": [
+        { "label": "Gate", "useField": true, "field": "gate_entrada", "color": "green", "caption": "Entrada autorizada" },
+        { "label": "Doca", "useField": true, "field": "doca", "color": "blue", "caption": "Destino interno" },
+        { "label": "Balança", "useField": true, "field": "balanca", "color": "orange", "caption": "Pesagem 01" },
+        { "label": "Status", "useField": true, "field": "autorizacao", "color": "green", "caption": "Acesso Liberado" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Identificação do Ticket"
+    },
+    { "element": "field", "label": "Nº Ticket", "field": "numero_ticket" },
+    { "element": "field", "label": "Data / Hora Entrada", "field": "hora_entrada" },
+    { "element": "field", "label": "Validade do Ticket", "field": "validade_ticket" },
+    { "element": "field", "label": "Operador Responsável", "field": "operador" },
+    {
+      "element": "section",
+      "title": "Dados da Operação e Carga"
+    },
+    { "element": "field", "label": "Produto", "field": "produto" },
+    { "element": "field", "label": "Nota Fiscal", "field": "nota_fiscal" },
+    { "element": "field", "label": "CT-e", "field": "num_cte" },
+    { "element": "field", "label": "Destino Interno", "field": "destino_interno" },
+    { "element": "field", "label": "Peso Programado", "field": "peso_solicitado" },
+    { "element": "field", "label": "Peso Entrada (kg)", "field": "balanca_entrada" },
+    { "element": "field", "label": "Peso Tara (kg)", "field": "peso_tara" },
+    { "element": "field", "label": "Lacre de Segurança", "field": "lacre_seguranca" },
+    {
+      "element": "section",
+      "title": "Veículo e Transportador"
+    },
+    { "element": "field", "label": "Motorista", "field": "nome_motorista" },
+    { "element": "field", "label": "CPF Motorista", "field": "cpf_motorista" },
+    { "element": "field", "label": "CNH Motorista", "field": "cnh_motorista" },
+    { "element": "field", "label": "Placa Cavalo", "field": "placa" },
+    { "element": "field", "label": "Placa Carreta", "field": "placa_carreta" },
+    { "element": "field", "label": "Transportadora", "field": "transportadora" },
+    {
+      "element": "attention",
+      "title": "Instruções da Portaria e Pátio",
+      "useField": true,
+      "field": "observacoes_gate",
+      "color": "orange",
+      "icon": "alert-circle-outline"
+    },
+    {
+      "element": "instruction",
+      "title": "INSTRUÇÕES DE ACESSO E NORMAS INTERNAS",
+      "steps": [
+        "Dirija-se ao gate e balança indicados acima no painel.",
+        "Apresente este ticket digital ao operador ou no leitor ótico da balança.",
+        "Uso obrigatório de EPI (capacete, colete refletivo e calçado fechado).",
+        "Respeite o limite máximo de velocidade de 20 km/h dentro do terminal.",
+        "Aguarde a liberação da cancela e o direcionamento para a doca de descarga."
+      ]
+    }
+  ]
+}
 ```
 
 #### 2.4 — Criar Trip Layout (Transportadora)
@@ -199,55 +370,132 @@ curl -X PUT "http://localhost:5000/api/web/config/trip/layouts" \
   -d '{
     "ref": "frete_rodoviario",
     "title": "Frete Rodoviário",
-    "layout": {
-      "card_layout": {
-        "header": {
-          "field": "summary",
-          "label": "Frete"
-        },
-        "sub_header": {
-          "label": "Veículo",
-          "field": "license_plate"
-        },
-        "body_rows": [
-          { "label": "Transportadora", "field": "transportadora" },
-          { "label": "Tipo de Carga", "field": "tipo_carga" }
-        ],
-        "status_tags": [
-          { "color": "blue", "value": "SCHEDULED" },
-          { "color": "green", "value": "IN_PROGRESS" }
+    "card_layout": {
+      "header": {
+        "field": "summary",
+        "label": "Frete"
+      },
+      "sub_header": {
+        "label": "Veículo",
+        "field": "license_plate"
+      },
+      "body_rows": [
+        { "label": "Transportadora", "field": "transportadora" },
+        { "label": "Tipo de Carga", "field": "tipo_carga" },
+        { "label": "Contratante", "field": "contratante" },
+        { "label": "Valor do Frete", "field": "valor_frete" }
+      ]
+    },
+    "modal_layout": [
+      {
+        "element": "section",
+        "title": "Detalhes da Carga e Frete",
+        "fields": [
+          { "label": "Tipo de Carga", "field": "tipo_carga" },
+          { "label": "Peso Total", "field": "peso_total" },
+          { "label": "Pedido", "field": "num_pedido" },
+          { "label": "Contratante", "field": "contratante" },
+          { "label": "Valor do Frete", "field": "valor_frete" },
+          { "label": "Nota Fiscal Carga", "field": "nota_fiscal" },
+          { "label": "CT-e Viagem", "field": "cte_viagem" }
         ]
       },
-      "modal_layout": [
-        {
-          "element": "section",
-          "title": "Detalhes da Carga",
-          "fields": [
-            { "label": "Tipo de Carga", "field": "tipo_carga" },
-            { "label": "Peso Total", "field": "peso_total" },
-            { "label": "Pedido", "field": "num_pedido" },
-            { "label": "Contratante", "field": "contratante" },
-            { "label": "Valor do Frete", "field": "valor_frete" }
-          ]
-        },
-        {
-          "element": "section",
-          "title": "Instruções",
-          "fields": [
-            { "label": "Instruções de Carga", "field": "instrucoes_carga" },
-            { "label": "Instruções de Descarga", "field": "instrucoes_descarga" },
-            { "label": "Contato no Destino", "field": "contato_destinatario" }
-          ]
-        },
-        {
-          "element": "qrcode",
-          "title": "Código da Viagem",
-          "field": "ref",
-          "caption": "Apresente no check-in do terminal"
-        }
-      ]
-    }
+      {
+        "element": "section",
+        "title": "Veículo e Equipamento",
+        "fields": [
+          { "label": "Tipo de Veículo", "field": "tipo_veiculo" },
+          { "label": "Placa Cavalo", "field": "license_plate" },
+          { "label": "Placa Carreta", "field": "placa_carreta" },
+          { "label": "Lacre de Carga", "field": "lacre_seguranca" }
+        ]
+      },
+      {
+        "element": "section",
+        "title": "Instruções e Rastreamento",
+        "fields": [
+          { "label": "Instruções de Carga", "field": "instrucoes_carga" },
+          { "label": "Instruções de Descarga", "field": "instrucoes_descarga" },
+          { "label": "Contato no Destino", "field": "contato_destinatario" },
+          { "label": "Telefone Destino", "field": "telefone_destinatario" },
+          { "label": "Gerenciadora de Risco", "field": "gerenciadora_risco" }
+        ]
+      },
+      {
+        "element": "qrcode",
+        "title": "Código da Viagem",
+        "field": "ref",
+        "caption": "Apresente no check-in do terminal"
+      }
+    ]
   }'
+```
+
+**JSON para copiar e colar diretamente no Editor do Webapp (aba JSON):**
+
+```json
+{
+  "ref": "frete_rodoviario",
+  "title": "Frete Rodoviário",
+  "card_layout": {
+    "header": {
+      "field": "summary",
+      "label": "Frete"
+    },
+    "sub_header": {
+      "label": "Veículo",
+      "field": "license_plate"
+    },
+    "body_rows": [
+      { "label": "Transportadora", "field": "transportadora" },
+      { "label": "Tipo de Carga", "field": "tipo_carga" },
+      { "label": "Contratante", "field": "contratante" },
+      { "label": "Valor do Frete", "field": "valor_frete" }
+    ]
+  },
+  "modal_layout": [
+    {
+      "element": "section",
+      "title": "Detalhes da Carga e Frete",
+      "fields": [
+        { "label": "Tipo de Carga", "field": "tipo_carga" },
+        { "label": "Peso Total", "field": "peso_total" },
+        { "label": "Pedido", "field": "num_pedido" },
+        { "label": "Contratante", "field": "contratante" },
+        { "label": "Valor do Frete", "field": "valor_frete" },
+        { "label": "Nota Fiscal Carga", "field": "nota_fiscal" },
+        { "label": "CT-e Viagem", "field": "cte_viagem" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Veículo e Equipamento",
+      "fields": [
+        { "label": "Tipo de Veículo", "field": "tipo_veiculo" },
+        { "label": "Placa Cavalo", "field": "license_plate" },
+        { "label": "Placa Carreta", "field": "placa_carreta" },
+        { "label": "Lacre de Carga", "field": "lacre_seguranca" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Instruções e Rastreamento",
+      "fields": [
+        { "label": "Instruções de Carga", "field": "instrucoes_carga" },
+        { "label": "Instruções de Descarga", "field": "instrucoes_descarga" },
+        { "label": "Contato no Destino", "field": "contato_destinatario" },
+        { "label": "Telefone Destino", "field": "telefone_destinatario" },
+        { "label": "Gerenciadora de Risco", "field": "gerenciadora_risco" }
+      ]
+    },
+    {
+      "element": "qrcode",
+      "title": "Código da Viagem",
+      "field": "ref",
+      "caption": "Apresente no check-in do terminal"
+    }
+  ]
+}
 ```
 
 ### 3. Criar Announcements iniciais (2 avisos já rodando)
@@ -401,7 +649,7 @@ Delete qualquer registro anterior do CPF `12345678901` para simular uma conta no
 ```bash
 curl -X POST "http://localhost:5000/api/v1/appointments" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: <API_KEY_DO_TERMINAL>" \
+  -H "X-API-Key: sk_live_88211157d4_1WC-42pSUqQJOpZF5_Ly4AP7lCa9iUYHCJ_04iOwem8" \
   -d '[
     {
       "driver": {
@@ -420,17 +668,22 @@ curl -X POST "http://localhost:5000/api/v1/appointments" \
         "end_tolerance": 15,
         "custom_data": {
           "nome_motorista": "Carlos Silva",
+          "cpf_motorista": "123.456.789-01",
           "cnh_motorista": "04567891234",
+          "celular_motorista": "(22) 99887-1122",
           "transportadora": "TransLog Frete S.A.",
+          "placa_carreta": "XYZ9E87",
           "nota_fiscal": "NF-2026-004871",
+          "num_cte": "CT-e 35260812345678000199550010000048711",
           "produto": "Soja em Grão",
           "peso_ton": "42.5",
-          "tipo_operacao": "Descarga",
+          "tipo_operacao": "Descarga Granel",
           "navio": "MV Atlantic Star",
           "berco": "Berço 3 — Ala Norte",
-          "observacoes": "Prioridade alta. Apresentar NF na portaria.",
-          "num_cte": "CT-e 35260812345678000199550010000048711",
-          "lacre": "LAC-889244"
+          "lacre": "LAC-889244",
+          "nivel_prioridade": "Alta (Navio Operando)",
+          "janela_tolerancia": "30 min início / 15 min fim",
+          "observacoes": "Prioridade alta. Apresentar NF e CT-e na portaria. Lona limpa e seca."
         }
       }
     },
@@ -451,17 +704,22 @@ curl -X POST "http://localhost:5000/api/v1/appointments" \
         "end_tolerance": 30,
         "custom_data": {
           "nome_motorista": "Carlos Silva",
+          "cpf_motorista": "123.456.789-01",
           "cnh_motorista": "04567891234",
+          "celular_motorista": "(22) 99887-1122",
           "transportadora": "TransLog Frete S.A.",
+          "placa_carreta": "XYZ9E87",
           "nota_fiscal": "NF-2026-004872",
+          "num_cte": "CT-e 35260812345678000199550010000048722",
           "produto": "Fertilizante MAP",
           "peso_ton": "38.0",
-          "tipo_operacao": "Carregamento",
+          "tipo_operacao": "Carregamento Granel",
           "navio": "—",
           "berco": "Pátio C — Área de Fertilizantes",
-          "observacoes": "Veículo deve estar com lona em boas condições.",
-          "num_cte": "CT-e 35260812345678000199550010000048722",
-          "lacre": "LAC-889245"
+          "lacre": "LAC-889245",
+          "nivel_prioridade": "Normal",
+          "janela_tolerancia": "20 min início / 30 min fim",
+          "observacoes": "Veículo deve estar limpo e com lona em boas condições para carregamento."
         }
       }
     },
@@ -482,17 +740,22 @@ curl -X POST "http://localhost:5000/api/v1/appointments" \
         "end_tolerance": 15,
         "custom_data": {
           "nome_motorista": "Carlos Silva",
+          "cpf_motorista": "123.456.789-01",
           "cnh_motorista": "04567891234",
+          "celular_motorista": "(22) 99887-1122",
           "transportadora": "TransLog Frete S.A.",
+          "placa_carreta": "XYZ9E87",
           "nota_fiscal": "NF-2026-004873",
+          "num_cte": "CT-e 35260812345678000199550010000048733",
           "produto": "Container 40ft — Peças Automotivas",
           "peso_ton": "28.3",
-          "tipo_operacao": "Retirada",
+          "tipo_operacao": "Retirada de Container",
           "navio": "MV Pacific Trader",
           "berco": "Berço 1 — Terminal de Containers",
-          "observacoes": "Container MSKU7654321. Levar booking confirmation.",
-          "num_cte": "CT-e 35260812345678000199550010000048733",
-          "lacre": "LAC-889246"
+          "lacre": "LAC-889246",
+          "nivel_prioridade": "Normal",
+          "janela_tolerancia": "15 min início / 15 min fim",
+          "observacoes": "Container MSKU7654321. Levar booking confirmation impresso ou digital."
         }
       }
     }
@@ -562,10 +825,16 @@ curl -X POST "http://localhost:5000/api/v1/trips" \
           "num_pedido": "PED-2026-11487",
           "contratante": "Agroindustrial Goytacazes Ltda.",
           "valor_frete": "R$ 4.850,00",
-          "tipo_veiculo": "Carreta Graneleira",
-          "instrucoes_carga": "Carregamento mecanizado. Acompanhar pesagem na balança da fazenda. Cobrir com lona antes de sair.",
-          "instrucoes_descarga": "Dirigir-se à balança do terminal. Aguardar liberação do Berço 3.",
-          "contato_destinatario": "João Carlos — (22) 98877-6655"
+          "nota_fiscal": "NF-2026-004871",
+          "cte_viagem": "CT-e 35260812345678000199550010000048711",
+          "tipo_veiculo": "Carreta Graneleira 9 Eixos",
+          "placa_carreta": "XYZ9E87",
+          "lacre_seguranca": "LAC-889244",
+          "instrucoes_carga": "Carregamento mecanizado no silo 2. Acompanhar pesagem na balança da fazenda. Amarração e lona obrigatórias.",
+          "instrucoes_descarga": "Dirigir-se à balança do Terminal Porto de Macaé. Aguardar liberação do Berço 3.",
+          "contato_destinatario": "João Carlos",
+          "telefone_destinatario": "(22) 98877-6655",
+          "gerenciadora_risco": "Buonny Gerenciamento de Risco (Liberação #99482)"
         }
       }
     },
@@ -605,15 +874,21 @@ curl -X POST "http://localhost:5000/api/v1/trips" \
         "custom_data": {
           "nome_motorista": "Carlos Silva",
           "transportadora": "TransLog Frete S.A.",
-          "tipo_carga": "Fertilizante MAP",
+          "tipo_carga": "Fertilizante MAP Granel",
           "peso_total": "38.0 toneladas",
           "num_pedido": "PED-2026-11488",
           "contratante": "FertiVale Distribuidora S.A.",
           "valor_frete": "R$ 3.200,00",
-          "tipo_veiculo": "Carreta Sider",
-          "instrucoes_carga": "Carregamento no Pátio C. Apresentar ordem de carregamento na portaria.",
-          "instrucoes_descarga": "Descarga manual na doca 4. Horário máximo: 20h.",
-          "contato_destinatario": "Maria Fernanda — (21) 99988-7766"
+          "nota_fiscal": "NF-2026-004872",
+          "cte_viagem": "CT-e 35260812345678000199550010000048722",
+          "tipo_veiculo": "Carreta Sider 3 Eixos",
+          "placa_carreta": "XYZ9E87",
+          "lacre_seguranca": "LAC-889245",
+          "instrucoes_carga": "Carregamento no Pátio C do Porto de Macaé. Apresentar ordem de carregamento na guarita.",
+          "instrucoes_descarga": "Descarga mecanizada/manual na doca 4 do Distribuidor Vale. Horário máximo de recebimento: 20:00.",
+          "contato_destinatario": "Maria Fernanda",
+          "telefone_destinatario": "(21) 99988-7766",
+          "gerenciadora_risco": "Opentech Risco (Liberação #88231)"
         }
       }
     }
@@ -753,11 +1028,28 @@ curl -X POST "http://localhost:5000/api/v1/tickets" \
     "layout_ref": "ticket_padrao",
     "content": {
       "numero_ticket": "TKT-2026-00381",
-      "portaria": "Portaria Sul — Gate 2",
-      "balanca_entrada": "42.580",
-      "hora_entrada": "15:47",
+      "hora_entrada": "10/08/2026 15:47",
+      "validade_ticket": "10/08/2026 23:59",
+      "operador": "Marcos Oliveira (Matrícula #4402)",
+      "gate_entrada": "Gate 02 — Norte",
+      "doca": "Doca 04 / Berço 3",
+      "balanca": "Balança B-01",
+      "autorizacao": "LIBERADO",
+      "produto": "Soja em Grão",
+      "nota_fiscal": "NF-2026-004871",
+      "num_cte": "CT-e 35260812345678000199550010000048711",
       "destino_interno": "Berço 3 — Ala Norte",
-      "autorizacao": "Liberado"
+      "peso_solicitado": "42.500 kg",
+      "balanca_entrada": "42.580 kg",
+      "peso_tara": "15.200 kg",
+      "lacre_seguranca": "LAC-889244",
+      "nome_motorista": "Carlos Silva",
+      "cpf_motorista": "123.456.789-01",
+      "cnh_motorista": "04567891234",
+      "placa": "ABC1D23",
+      "placa_carreta": "XYZ9E87",
+      "transportadora": "TransLog Frete S.A.",
+      "observacoes_gate": "Atenção: Balança B-01 liberada. Velocidade máxima no pátio é 20 km/h. Vistoria de lacre ok."
     }
   }'
 ```
@@ -769,9 +1061,9 @@ curl -X POST "http://localhost:5000/api/v1/tickets" \
 
 #### CENA 5.4 — Abrir o Ticket
 
-1. Toque no ticket para abrir os detalhes
-2. Mostre os campos: Nº Ticket, Portaria, Peso, Hora de Entrada, Destino, Autorização
-3. **Fala:** *"Tudo renderizado pelo layout que a empresa configurou. Cada terminal pode ter seu próprio formato de ticket."*
+1. Toque no ticket para abrir o modal de detalhes
+2. Mostre os elementos renderizados: Tags de liberação/vistoria, Grid de destaques (Gate 02, Doca 04, Balança B-01, Status LIBERADO), Identificação do Ticket, Dados da Operação e Carga (Produto, NFs, Pesagens de Entrada/Tara, Lacres), Dados do Motorista/Veículo, Bloco de Atenção da Guarita e Instruções de Segurança.
+3. **Fala:** *"Tudo renderizado dinamicamente pelo layout que a empresa configurou. Cada terminal pode ter seu próprio formato de ticket com múltiplos campos e avisos."*
 
 ---
 
@@ -850,7 +1142,7 @@ Um layout é um objeto JSON que define como os campos e dados são exibidos nos 
 - **Ticket Layout** → Ticket digital emitido no check-in (pertence ao Terminal)
 
 > [!IMPORTANT]
-> O body da API de criação/atualização é `{ "ref": "...", "title": "...", "layout": { <estrutura abaixo> } }`. O `ref` e o `title` ficam **fora** do `layout`.
+> Para agendamentos e viagens, o body da API e o editor JSON possuem `ref`, `title`, `card_layout` e `modal_layout` diretamente no topo do objeto. Para tickets, o body da API e o editor JSON possuem `ref`, `title` e `layout` (array de elementos) diretamente no topo.
 
 ---
 
@@ -871,11 +1163,9 @@ Ambos usam o mesmo schema: `card_layout` (define o card da lista) + `modal_layou
     },
     "body_rows": [
       { "label": "Transportadora", "field": "transportadora" },
-      { "label": "Produto", "field": "produto" }
-    ],
-    "status_tags": [
-      { "color": "blue", "value": "SCHEDULED" },
-      { "color": "green", "value": "IN_PROGRESS" }
+      { "label": "Produto", "field": "produto" },
+      { "label": "Nota Fiscal", "field": "nota_fiscal" },
+      { "label": "Berço / Doca", "field": "berco" }
     ]
   },
   "modal_layout": [
@@ -884,20 +1174,46 @@ Ambos usam o mesmo schema: `card_layout` (define o card da lista) + `modal_layou
       "title": "Detalhes da Operação",
       "fields": [
         { "label": "Nota Fiscal", "field": "nota_fiscal" },
+        { "label": "CT-e", "field": "num_cte" },
         { "label": "Produto", "field": "produto" },
-        { "label": "Peso (ton)", "field": "peso_ton" }
+        { "label": "Tipo de Operação", "field": "tipo_operacao" },
+        { "label": "Peso (ton)", "field": "peso_ton" },
+        { "label": "Navio", "field": "navio" },
+        { "label": "Berço / Destino", "field": "berco" },
+        { "label": "Lacre de Segurança", "field": "lacre" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Veículo e Motorista",
+      "fields": [
+        { "label": "Motorista", "field": "nome_motorista" },
+        { "label": "CPF Motorista", "field": "cpf_motorista" },
+        { "label": "CNH Motorista", "field": "cnh_motorista" },
+        { "label": "Telefone / Celular", "field": "celular_motorista" },
+        { "label": "Transportadora", "field": "transportadora" },
+        { "label": "Placa Cavalo", "field": "license_plate" },
+        { "label": "Placa Carreta", "field": "placa_carreta" }
+      ]
+    },
+    {
+      "element": "section",
+      "title": "Controle e Logística",
+      "fields": [
+        { "label": "Prioridade da Carga", "field": "nivel_prioridade" },
+        { "label": "Tolerância Janela", "field": "janela_tolerancia" }
       ]
     },
     {
       "element": "field",
-      "label": "Observações",
+      "label": "Observações do Terminal",
       "field": "observacoes"
     },
     {
       "element": "qrcode",
       "title": "Código do Agendamento",
       "field": "ref",
-      "caption": "Apresente na portaria"
+      "caption": "Apresente o QR Code na guarita de acesso"
     }
   ]
 }
@@ -908,74 +1224,86 @@ Ambos usam o mesmo schema: `card_layout` (define o card da lista) + `modal_layou
 | `card_layout.header.field` | Campo a exibir como título principal do card |
 | `card_layout.sub_header.field` | Campo a exibir como subtítulo (ex: placa) |
 | `card_layout.body_rows` | Array de linhas de resumo no card (`label` + `field`) |
-| `card_layout.status_tags` | Tags coloridas exibidas no canto do card (mapeadas ao status do registro) |
 | `modal_layout` | Array de elementos do modal: `section`, `field`, `alert`, `qrcode` |
 
 ---
 
 ### Ticket Layout — Estrutura de `layout`
 
-O ticket usa `elements` (array de componentes renderizados no corpo do ticket) e `appt_card_layout` (define o cabeçalho do ticket, herdado do appointment vinculado).
+O ticket usa `layout` como um array de elementos/componentes renderizados no corpo do ticket. O cabeçalho e subcabeçalho do ticket são herdados automaticamente do appointment vinculado.
 
 ```json
 {
-  "elements": [
+  "layout": [
     {
       "element": "tag_container",
       "label": "Status da Liberação",
       "tags": [
         { "label": "Liberado", "color": "green", "icon": "check-circle-outline" },
-        { "label": "Balança Obrigatória", "color": "orange", "icon": "scale" }
+        { "label": "Balança Obrigatória", "color": "orange", "icon": "scale" },
+        { "label": "Vistoria Concluída", "color": "blue", "icon": "shield-check-outline" }
       ]
     },
     {
       "element": "highlight_grid",
-      "label": "Dados de Gate",
+      "label": "Dados de Acesso Rápido",
       "items": [
         { "label": "Gate", "useField": true, "field": "gate_entrada", "color": "green", "caption": "Entrada autorizada" },
-        { "label": "Doca", "useField": true, "field": "doca", "color": "blue", "caption": "Destino interno" }
+        { "label": "Doca", "useField": true, "field": "doca", "color": "blue", "caption": "Destino interno" },
+        { "label": "Balança", "useField": true, "field": "balanca", "color": "orange", "caption": "Pesagem 01" },
+        { "label": "Status", "useField": true, "field": "autorizacao", "color": "green", "caption": "Acesso Liberado" }
       ]
     },
     {
+      "element": "section",
+      "title": "Identificação do Ticket"
+    },
+    { "element": "field", "label": "Nº Ticket", "field": "numero_ticket" },
+    { "element": "field", "label": "Data / Hora Entrada", "field": "hora_entrada" },
+    { "element": "field", "label": "Validade do Ticket", "field": "validade_ticket" },
+    { "element": "field", "label": "Operador Responsável", "field": "operador" },
+    {
+      "element": "section",
+      "title": "Dados da Operação e Carga"
+    },
+    { "element": "field", "label": "Produto", "field": "produto" },
+    { "element": "field", "label": "Nota Fiscal", "field": "nota_fiscal" },
+    { "element": "field", "label": "CT-e", "field": "num_cte" },
+    { "element": "field", "label": "Destino Interno", "field": "destino_interno" },
+    { "element": "field", "label": "Peso Programado", "field": "peso_solicitado" },
+    { "element": "field", "label": "Peso Entrada (kg)", "field": "balanca_entrada" },
+    { "element": "field", "label": "Peso Tara (kg)", "field": "peso_tara" },
+    { "element": "field", "label": "Lacre de Segurança", "field": "lacre_seguranca" },
+    {
+      "element": "section",
+      "title": "Veículo e Transportador"
+    },
+    { "element": "field", "label": "Motorista", "field": "nome_motorista" },
+    { "element": "field", "label": "CPF Motorista", "field": "cpf_motorista" },
+    { "element": "field", "label": "CNH Motorista", "field": "cnh_motorista" },
+    { "element": "field", "label": "Placa Cavalo", "field": "placa" },
+    { "element": "field", "label": "Placa Carreta", "field": "placa_carreta" },
+    { "element": "field", "label": "Transportadora", "field": "transportadora" },
+    {
       "element": "attention",
-      "title": "Atenção",
+      "title": "Instruções da Portaria e Pátio",
       "useField": true,
       "field": "observacoes_gate",
       "color": "orange",
       "icon": "alert-circle-outline"
     },
-    { "element": "section", "title": "Dados da Operação" },
-    { "element": "field", "label": "Nº Ticket", "field": "numero_ticket" },
-    { "element": "field", "label": "Motorista", "field": "nome_motorista" },
-    { "element": "field", "label": "Placa", "field": "placa" },
-    { "element": "field", "label": "Balança", "field": "balanca" },
     {
       "element": "instruction",
-      "title": "INSTRUÇÕES DE ACESSO",
+      "title": "INSTRUÇÕES DE ACESSO E NORMAS INTERNAS",
       "steps": [
-        "Dirija-se ao gate indicado acima.",
-        "Apresente este ticket ao operador ou no leitor óptico.",
-        "Aguarde a liberação da cancela."
+        "Dirija-se ao gate e balança indicados acima no painel.",
+        "Apresente este ticket digital ao operador ou no leitor ótico da balança.",
+        "Uso obrigatório de EPI (capacete, colete refletivo e calçado fechado).",
+        "Respeite o limite máximo de velocidade de 20 km/h dentro do terminal.",
+        "Aguarde a liberação da cancela e o direcionamento para a doca de descarga."
       ]
     }
-  ],
-  "appt_card_layout": {
-    "header": {
-      "field": "summary",
-      "preview_value": "Descarga de Soja — MV Atlantic Star"
-    },
-    "body_rows": [
-      { "field": "gate_assignment", "label": "Gate" }
-    ],
-    "sub_header": {
-      "field": "license_plate",
-      "label": "Veículo",
-      "preview_value": "ABC1D23"
-    },
-    "status_tags": [
-      { "color": "blue", "value": "SCHEDULED" }
-    ]
-  }
+  ]
 }
 ```
 
@@ -995,7 +1323,7 @@ O ticket usa `elements` (array de componentes renderizados no corpo do ticket) e
 1. **Appointment/Trip — `header.field`**: Use `summary` como campo do header para exibir a descrição principal da operação no topo do card.
 2. **Mapeamento de Dados**: A propriedade `field` mapeia tanto os campos diretos do registro (`summary`, `license_plate`, `ref`) quanto as chaves do objeto `custom_data`.
 3. **Padronize os campos**: Use snake_case (ex: `nome_motorista`, `nota_fiscal`, `gate_entrada`) e certifique-se que as mesmas chaves existem no `custom_data` dos agendamentos/viagens/tickets enviados via API.
-4. **Ticket — `appt_card_layout`**: Este objeto é apenas para preview no editor web. No app, o cabeçalho real do ticket é preenchido automaticamente pelo appointment vinculado.
+4. **Ticket — Cabeçalho Herdado**: O cabeçalho do ticket (header e subheader) é preenchido automaticamente pelo appointment vinculado, herdando as configurações do layout do agendamento.
 5. **Layouts são por empresa**: Cada terminal e transportadora pode configurar layouts específicos para suas operações.
 
 ---

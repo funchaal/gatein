@@ -27,14 +27,10 @@ const appReducer = combineReducers({
 // garantindo que dados antigos (empresas, logos, etc.) não sobrevivam entre sessões.
 const rootReducer = (state, action) => {
   if (action.type === 'auth/logout') {
-    // Preserva apenas o savedTaxId para conveniência de login
-    const savedTaxId = state?.auth?.savedTaxId;
     // Limpa o estado do AsyncStorage (redux-persist)
     AsyncStorage.removeItem('persist:root').catch(() => {});
-    // Reseta tudo e mantém só o savedTaxId
-    state = {
-      auth: { savedTaxId }
-    };
+    // Reseta todo o estado para undefined, fazendo com que todos os reducers retornem seus initialStates
+    state = undefined;
   }
   return appReducer(state, action);
 };

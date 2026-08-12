@@ -16,7 +16,8 @@ import CpfStep from './components/CpfStep';
 import PasswordStep from './components/PasswordStep';
 
 // Store & Utils
-import { clearError } from '../../store/slices/authSlice';
+import { clearError, setSavedTaxId } from '../../store/slices/authSlice';
+import { secureStorage } from '../../services/secureStorage';
 import { useLoginMutation } from '../../services/api';
 import { isValidCPF } from '../../utils/validators';
 import { maskCPF } from '../../utils/masks';
@@ -76,14 +77,6 @@ export default function LoginScreen({ navigation, route }) {
         dispatch(clearError());
     }, [password, dispatch]);
 
-    // Preencher CPF automaticamente se vier do savedTaxId
-    useEffect(() => {
-        if (savedTaxId && !cpf) {
-            setCpf(maskCPF(savedTaxId));
-            setStep('password');
-        }
-    }, [savedTaxId, cpf]);
-
     // Tratar erro de dispositivo não validado
     useEffect(() => {
         if (authError?.data?.error?.code === 'DEVICE_NOT_VALIDATED') {
@@ -102,6 +95,8 @@ export default function LoginScreen({ navigation, route }) {
 
     const handleSwitchAccount = () => {
         dispatch(clearError());
+        dispatch(setSavedTaxId(null));
+        secureStorage.clearAll().catch(() => {});
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setStep('cpf');
         setCpf('');

@@ -36,6 +36,7 @@ const authSlice = createSlice({
       state.isOffline = false;
       state.error = null;
       state.isDeviceValidated = false;
+      state.savedTaxId = null;
 
       secureStorage.clearAll().catch(err =>
         console.error('Error clearing Keychain on logout:', err)
